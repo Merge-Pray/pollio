@@ -1,4 +1,6 @@
-![Pollio Logo](./public/pollio_logo_w.svg)
+<div style="text-align: center;">
+    <img src="./public/pollio_logo_s.svg" alt="Pollio Logo" width="200">
+</div>
 
 # Pollio.app
 

@@ -25,3 +25,12 @@ Pollio.app is a simple and interactive survey tool that allows users to create p
 
 This project is part of the Web Development course at **DCI**, specifically within the **Backend** module. It aims to teach students how to integrate a frontend React application with a backend API, manage databases, and handle authentication.
 
+### Planungstools
+
+https://excalidraw.com/#json=ce5BMlFPJXuvcdQxipIOF,bplNKwkGk4cJlMYXEIj9xw
+
+### Eventuelle verwenden
+
+
+reCAPTCHA
+https://cloud.google.com/security/products/recaptcha?hl=de

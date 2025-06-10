@@ -1,5 +1,5 @@
 <div style="text-align: center;">
-    <img src="./public/pollio_logo_w.svg" alt="Pollio Logo" width="200">
+    <img src="./frontend/public/pollio_logo_w.svg" alt="Pollio Logo" width="200">
 </div>
 
 # Pollio.app
@@ -30,7 +30,6 @@ This project is part of the Web Development course at **DCI**, specifically with
 https://excalidraw.com/#json=ce5BMlFPJXuvcdQxipIOF,bplNKwkGk4cJlMYXEIj9xw
 
 ### Eventuelle verwenden
-
 
 reCAPTCHA
 https://cloud.google.com/security/products/recaptcha?hl=de

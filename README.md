@@ -19,7 +19,6 @@ Pollio.app is a simple and interactive survey tool that allows users to create p
 - **Frontend:** React.js, Vite
 - **Backend:** Node.js, Express, MongoDB
 - **Authentication:** JWT or OAuth
-- **Deployment:** Docker, Vercel/Netlify, Railway/Fly.io
 
 ## 📚 Project Context
 

@@ -1,12 +1,7 @@
-import React from "react";
-import "./Landingpage.css";
+import styles from "./landingpage.module.css";
 
 function Landingpage() {
-  return (
-    <div className="landingpage-container">
-      <img src="../public/pollio_logo_w.svg" alt="Polio Logo" className="landingpage-logo" />
-    </div>
-  );
+  return <div>Landingpage</div>;
 }
 
 export default Landingpage;

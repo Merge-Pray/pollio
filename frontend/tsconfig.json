@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "allowJs": true, // Allow mixing .js and .ts files initially
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler", // Or "node" for older setups
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx", // Or "preserve" or "react" depending on your setup
+    "baseUrl": ".",
+    "paths": {
+      // Add any custom path aliases from your vite.config.js or jsconfig.json
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "types", "vite.config.ts"]
+}

@@ -1,5 +1,5 @@
 <div style="text-align: center;">
-    <img src="./frontend/public/pollio_logo_w.svg" alt="Pollio Logo" width="200">
+    <img src="./public/pollio_logo_w.svg" alt="Pollio Logo" width="200">
 </div>
 
 # Pollio.app
@@ -19,7 +19,6 @@ Pollio.app is a simple and interactive survey tool that allows users to create p
 - **Frontend:** React.js, Vite
 - **Backend:** Node.js, Express, MongoDB
 - **Authentication:** JWT or OAuth
-- **Deployment:** Docker, Vercel/Netlify, Railway/Fly.io
 
 ## 📚 Project Context
 
@@ -28,7 +27,7 @@ This project is part of the Web Development course at **DCI**, specifically with
 ### Planungstools
 
 excalidraw
-https://excalidraw.com/#json=ce5BMlFPJXuvcdQxipIOF,bplNKwkGk4cJlMYXEIj9xw
+https://excalidraw.com/#json=MzbbAINzoamD8RG-HUWgI,a7PWTm5tedIqqi2lDE72ww
 
 Pad
 https://pad.fnord.wtf/pollio_app

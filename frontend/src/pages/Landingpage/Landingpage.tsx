@@ -61,7 +61,7 @@ function Landingpage() {
             name="question"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-3xl">Create a poll</FormLabel>
+                <FormLabel className="text-2xl">Create a poll</FormLabel>
                 <FormDescription>Enter your poll question</FormDescription>
                 <FormControl>
                   <Input placeholder="..." {...field} />
@@ -104,7 +104,7 @@ function Landingpage() {
 
           {numberOfOptionsInt > 0 && (
             <div className="space-y-4">
-              <FormLabel>Poll Options</FormLabel>
+              <FormDescription>Poll Options</FormDescription>
               {Array.from({ length: numberOfOptionsInt }, (_, index) => (
                 <FormField
                   key={index}

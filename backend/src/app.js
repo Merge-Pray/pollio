@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import { errorHandler } from "./middleware/error-handler.js";
-import { router as userRouter } from "./routes/user.js";
+import { router as pollRouter } from "./routes/poll.js";
 
 const app = express();
 
@@ -17,7 +17,7 @@ app.use(
 
 const PORT = process.env.PORT || 3001;
 
-app.use("/users", userRouter);
+app.use("/api", pollRouter);
 
 app.use(errorHandler);
 

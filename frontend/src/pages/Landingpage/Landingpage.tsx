@@ -62,7 +62,7 @@ function Landingpage() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-3xl">Create a poll</FormLabel>
-                <FormDescription>Enter your poll question.</FormDescription>
+                <FormDescription>Enter your poll question</FormDescription>
                 <FormControl>
                   <Input placeholder="..." {...field} />
                 </FormControl>
@@ -76,7 +76,7 @@ function Landingpage() {
             name="numberOfOptions"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Number of answer options</FormLabel>
+                <FormDescription>Set amount of answers</FormDescription>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}

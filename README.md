@@ -1,5 +1,5 @@
 <div style="text-align: center;">
-    <img src="./public/pollio_logo_w.svg" alt="Pollio Logo" width="200">
+    <img src="/frontend/public/pollio_logo_w.svg" alt="Pollio Logo" width="200">
 </div>
 
 # Pollio.app

@@ -2,14 +2,14 @@ import { NavLink } from "react-router";
 
 const Footer = () => {
   return (
-    <footer>
-      <div>
-        <p>
-          Leafio ist ein Projekt im Rahmen des Web Development Kurses beim DCI
-          (April/Mai 2025) und nicht für den produktiven Betrieb gedacht.
+    <footer className="flex justify-center items-center bg-white sm:p-1">
+      <div className="text-center text-xs">
+        <p className="text-[10px]">
+          pollio ist ein Projekt im Rahmen des Web Development Kurses beim DCI
+          [Juli 2025].
         </p>
         <div>
-          <NavLink to="/about">Über Leafio</NavLink>
+          <NavLink to="/about">ÜBER POLLio</NavLink>
         </div>
       </div>
     </footer>

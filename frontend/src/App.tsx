@@ -6,15 +6,15 @@ import Header from "./components/Header/Header";
 
 function App() {
   return (
-    <>
+    <div className="flex flex-col min-h-screen relative">
       <Header />
-      <section>
+      <main className="flex flex-grow items-center justify-center">
         <Routes>
           <Route path="/" element={<Landingpage />} />
         </Routes>
-      </section>
+      </main>
       <Footer />
-    </>
+    </div>
   );
 }
 

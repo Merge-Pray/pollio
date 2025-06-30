@@ -2,14 +2,14 @@ import { NavLink } from "react-router";
 
 const Footer = () => {
   return (
-    <footer className="flex justify-center items-center bg-white">
+    <footer className="flex justify-center items-center bg-white sm:p-1">
       <div className="text-center text-xs">
-        <p>
+        <p className="text-[10px]">
           pollio ist ein Projekt im Rahmen des Web Development Kurses beim DCI
-          (Juli 2025).
+          [Juli 2025].
         </p>
         <div>
-          <NavLink to="/about">Über pollio</NavLink>
+          <NavLink to="/about">ÜBER POLLio</NavLink>
         </div>
       </div>
     </footer>

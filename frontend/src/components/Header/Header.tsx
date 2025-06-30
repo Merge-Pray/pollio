@@ -35,7 +35,7 @@ const Header = () => {
 
   return (
     <div className="flex flex-col justify-center items-center mt-6 ">
-      <Card className="flex flex-col justify-center items-center sm:py-2 sm:px-16 mb-4 ">
+      <Card className="flex flex-col gap-0.5 justify-center items-center sm:py-2 sm:px-16 mb-4 ">
         <NavLink to="/">
           <img
             src={isDarkMode ? "/pollio_logo_w.svg" : "/pollio_logo_s.svg"}
@@ -43,7 +43,7 @@ const Header = () => {
             className="h-14"
           />
         </NavLink>
-        <p>simple.fast</p>
+        <p className="font-light">simple.clean.fast</p>
         <Switch
           id="darkmode"
           className="absolute top-[0.5rem] right-2"

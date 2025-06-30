@@ -53,7 +53,7 @@ function Landingpage() {
   }
 
   return (
-    <div className="w-1/2 mx-auto">
+    <div className="my-10 w-1/2 mx-auto">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField

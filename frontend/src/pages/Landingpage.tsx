@@ -61,8 +61,8 @@ function Landingpage() {
             name="question"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-2xl">Create a poll</FormLabel>
-                <FormDescription>Enter your poll question</FormDescription>
+                <FormLabel className="text-2xl">Create a quick-poll</FormLabel>
+                <FormDescription>Enter your poll a name</FormDescription>
                 <FormControl>
                   <Input placeholder="..." {...field} />
                 </FormControl>

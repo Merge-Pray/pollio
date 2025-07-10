@@ -1,4 +1,4 @@
-import { Button } from "../../components/ui/button.js";
+import { Button } from "../components/ui/button.js";
 import {
   Form,
   FormControl,
@@ -7,7 +7,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "../../components/ui/form.js";
+} from "../components/ui/form.js";
 import {
   Select,
   SelectContent,
@@ -16,9 +16,9 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "../..//components/ui/select.js";
+} from "..//components/ui/select.js";
 
-import { Input } from "../../components/ui/input.js";
+import { Input } from "../components/ui/input.js";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";

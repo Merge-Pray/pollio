@@ -1,6 +1,6 @@
 import { model, Schema } from "mongoose";
 
-const ImageOptionSchema = new mongoose.Schema(
+const ImageOptionSchema = new Schema(
   {
     imageUrl: { type: String, required: true },
     text: { type: String },
@@ -9,7 +9,7 @@ const ImageOptionSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const ImagePollSchema = new mongoose.Schema({
+const ImagePollSchema = new Schema({
   title: String,
   question: String,
   type: { type: String, default: "image" },
@@ -18,7 +18,7 @@ const ImagePollSchema = new mongoose.Schema({
   expired: Boolean,
   multipleChoice: Boolean,
   creatorId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },

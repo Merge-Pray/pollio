@@ -1,13 +1,13 @@
 import { model, Schema } from "mongoose";
 
-const UserSchema = new mongoose.Schema({
+const UserSchema = new Schema({
   username: String,
   email: String,
   hashPassword: String,
   polls: [
     {
       poll: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         required: true,
         refPath: "polls.pollModel",
       },

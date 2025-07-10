@@ -54,6 +54,7 @@ npm install react-router-dom
 
 ```js
 {
+  title: String,
   pollId: String,
   question: String,
   options: [

@@ -2,9 +2,10 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import { errorHandler } from "./middleware/error-handler.js";
-import { router as pollRouter } from "./routes/poll.js";
+
 import db from "./db/db.js";
 import cookieParser from "cookie-parser";
+import { pollRouter } from "./routes/poll.js";
 
 const app = express();
 
@@ -15,7 +16,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "",
+    origin: "*",
     credentials: true,
   })
 );

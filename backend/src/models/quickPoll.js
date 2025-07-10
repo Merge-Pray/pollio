@@ -1,13 +1,13 @@
 import { model, Schema } from "mongoose";
 
-const QuickOptionSchema = new mongoose.Schema(
+const QuickOptionSchema = new Schema(
   {
     text: { type: String, required: true },
     voters: [{ type: String }],
   },
   { _id: false }
 );
-const QuickPollSchema = new mongoose.Schema({
+const QuickPollSchema = new Schema({
   title: String,
   question: String,
   type: { type: String, default: "text" },
@@ -16,7 +16,7 @@ const QuickPollSchema = new mongoose.Schema({
   expired: Boolean,
   multipleChoice: Boolean,
   creatorId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },

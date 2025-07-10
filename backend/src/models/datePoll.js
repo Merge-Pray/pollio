@@ -1,6 +1,6 @@
 import { model, Schema } from "mongoose";
 
-const DateOptionSchema = new mongoose.Schema(
+const DateOptionSchema = new Schema(
   {
     dateTime: { type: Date, required: true },
     yes: [{ type: String }],
@@ -10,7 +10,7 @@ const DateOptionSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const DatePollSchema = new mongoose.Schema({
+const DatePollSchema = new Schema({
   title: String,
   question: String,
   type: { type: String, default: "date" },
@@ -18,7 +18,7 @@ const DatePollSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   expired: Boolean,
   creatorId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },

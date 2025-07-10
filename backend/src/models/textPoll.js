@@ -1,13 +1,13 @@
 import { model, Schema } from "mongoose";
 
-const TextOptionSchema = new mongoose.Schema(
+const TextOptionSchema = new Schema(
   {
     text: { type: String, required: true },
     voters: [{ type: String }],
   },
   { _id: false }
 );
-const TextPollSchema = new mongoose.Schema({
+const TextPollSchema = new Schema({
   title: String,
   question: String,
   type: { type: String, default: "text" },
@@ -16,7 +16,7 @@ const TextPollSchema = new mongoose.Schema({
   expired: Boolean,
   multipleChoice: Boolean,
   creatorId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: "User",
     required: true,
   },

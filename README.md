@@ -27,7 +27,7 @@ This project is part of the Web Development course at **DCI**, specifically with
 ### Planungstools
 
 excalidraw
-https://excalidraw.com/#json=MzbbAINzoamD8RG-HUWgI,a7PWTm5tedIqqi2lDE72ww
+https://excalidraw.com/#room=36b555e0400cbc4427af,6YCJAv4LYDVywTVLClpMmw
 
 Pad
 https://pad.fnord.wtf/pollio_app

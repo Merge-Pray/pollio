@@ -14,6 +14,14 @@ const createUser = async (req, res, next) => {
     });
 
     await newAccount.save();
+    res.status(201).json({
+      message: "User created successfully",
+      user: {
+        id: newAccount._id,
+        username: newAccount.username,
+        email: newAccount.email,
+      },
+    });
   } catch (error) {
     return next(error);
   }

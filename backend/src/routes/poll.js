@@ -1,6 +1,6 @@
 import express from "express";
 import createUser from "../controllers/user.js";
 
-export const router = express.Router();
+export const pollRouter = express.Router();
 
-router.post("/register", createUser);
+pollRouter.post("/register", createUser);

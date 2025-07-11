@@ -1,9 +1,19 @@
 import { model, Schema } from "mongoose";
 
+const VoterSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    ipAddress: { type: String, required: true },
+    fingerprint: { type: String, required: true },
+    votedAt: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
 const QuickOptionSchema = new Schema(
   {
     text: { type: String, required: true },
-    voters: [{ type: String }],
+    voters: [VoterSchema],
   },
   { _id: false }
 );

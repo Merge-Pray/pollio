@@ -134,7 +134,7 @@ const QuickpollResult = () => {
           </CardHeader>
           <CardContent>
             <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={() => navigate("/")} variant="outline">
+            <Button onClick={() => navigate("/")} variant="noShadow">
               Back to Home
             </Button>
           </CardContent>
@@ -151,7 +151,7 @@ const QuickpollResult = () => {
             <CardTitle>Poll Not Found</CardTitle>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate("/")} variant="outline">
+            <Button onClick={() => navigate("/")} variant="noShadow">
               Back to Home
             </Button>
           </CardContent>
@@ -229,9 +229,9 @@ const QuickpollResult = () => {
 
                     {option.voterNames.length > 0 && (
                       <Button
-                        variant="ghost"
+                        variant="noShadow"
                         size="sm"
-                        className="mt-3 text-sm"
+                        className="mt-2 text-xs h-4 px-2 py-1 bg-white"
                         onClick={(e) => {
                           e.stopPropagation();
                           setExpandedOption(

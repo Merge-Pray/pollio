@@ -16,7 +16,7 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "..//components/ui/select.js";
+} from "../components/ui/select.js";
 import { Switch } from "../components/ui/switch.js";
 import { Input } from "../components/ui/input.js";
 import { zodResolver } from "@hookform/resolvers/zod";

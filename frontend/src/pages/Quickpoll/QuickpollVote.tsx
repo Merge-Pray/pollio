@@ -199,7 +199,7 @@ const QuickpollVote = () => {
           </CardHeader>
           <CardContent>
             <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={() => navigate("/")} variant="outline">
+            <Button onClick={() => navigate("/")} variant="noShadow">
               Back to Home
             </Button>
           </CardContent>
@@ -216,7 +216,7 @@ const QuickpollVote = () => {
             <CardTitle>Poll Not Found</CardTitle>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate("/")} variant="outline">
+            <Button onClick={() => navigate("/")} variant="noShadow">
               Back to Home
             </Button>
           </CardContent>

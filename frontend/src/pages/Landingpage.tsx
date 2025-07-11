@@ -47,7 +47,7 @@ function Landingpage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       question: "",
-      numberOfOptions: "",
+      numberOfOptions: "2",
       options: [],
       isPublic: false,
     },
@@ -120,7 +120,9 @@ function Landingpage() {
             name="question"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-2xl font-semibold">Create a quick-poll</FormLabel>
+                <FormLabel className="text-2xl font-semibold">
+                  Create a quick-poll
+                </FormLabel>
                 <FormDescription>Enter your poll question</FormDescription>
                 <FormControl>
                   <Input placeholder="What's your favorite color?" {...field} />
@@ -138,7 +140,7 @@ function Landingpage() {
                 <FormDescription>Set amount of answers</FormDescription>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value} // Changed from defaultValue to value
                 >
                   <FormControl>
                     <SelectTrigger className="w-[200px]">
@@ -147,7 +149,6 @@ function Landingpage() {
                   </FormControl>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectLabel>Options</SelectLabel>
                       {Array.from({ length: 9 }, (_, i) => i + 2).map((num) => (
                         <SelectItem key={num} value={num.toString()}>
                           {num} options

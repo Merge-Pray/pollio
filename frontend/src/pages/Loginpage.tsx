@@ -122,9 +122,9 @@ const Loginpage = () => {
 
       <div className="mt-4 text-center">
         <Button
-          variant="link"
+          variant="noShadow"
           onClick={() => navigate("/register")}
-          className="text-sm cursor-pointer"
+          className="text-xs h-6 cursor-pointer"
         >
           Don't have an account? Register
         </Button>

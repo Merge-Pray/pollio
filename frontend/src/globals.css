@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
 
 @custom-variant dark (&:is(.dark *));
 
@@ -13,7 +15,7 @@
   --ring: oklch(0% 0 0);
   --overlay: oklch(0% 0 0 / 0.8);
   --shadow: 2px 2px 0px 0px var(--border);
-  --chart-1: #00c8f0;
+  --chart-1: #00c7ef;
   --chart-2: #ff7a05;
   --chart-3: #7a83ff;
   --chart-4: #ff4d50;
@@ -30,7 +32,7 @@
   --border: oklch(0% 0 0);
   --ring: oklch(100% 0 0);
   --shadow: 2px 2px 0px 0px var(--border);
-  --chart-1: #009dbd;
+  --chart-1: #00c7ef;
   --chart-2: #eb6d00;
   --chart-3: #7a83ff;
   --chart-4: #ff6669;
@@ -65,15 +67,31 @@
 
 @layer base {
   body {
-    @apply text-foreground font-base bg-background;
+    font-family: 'Poppins', sans-serif;
+    @apply text-foreground bg-background font-normal text-base;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
+  h1 {
+    @apply text-4xl font-bold;
+  }
+
+  h2 {
+    @apply text-3xl font-semibold;
+  }
+
+  h3 {
+    @apply text-2xl font-medium;
+  }
+
+  h4 {
+    @apply text-xl font-medium;
+  }
+
+  h5 {
+    @apply text-lg font-normal;
+  }
+
   h6 {
-    @apply font-heading;
+    @apply text-base font-normal;
   }
 }

@@ -268,7 +268,7 @@ const QuickpollResult = () => {
               </Button>
               <Button
                 onClick={() => navigate(`/quickpoll/vote/${id}`)}
-                variant="outline"
+                variant="noShadow"
                 className="h-12 text-lg px-6 cursor-pointer"
               >
                 Vote Again
@@ -280,7 +280,7 @@ const QuickpollResult = () => {
               <div className="flex gap-3">
                 <Button
                   onClick={handleShareVote}
-                  variant="secondary"
+                  variant="noShadow"
                   className="flex-1 cursor-pointer h-12 text-lg"
                   size="sm"
                 >
@@ -288,7 +288,7 @@ const QuickpollResult = () => {
                 </Button>
                 <Button
                   onClick={handleShareResults}
-                  variant="secondary"
+                  variant="noShadow"
                   className="flex-1 cursor-pointer h-12 text-lg"
                   size="sm"
                 >

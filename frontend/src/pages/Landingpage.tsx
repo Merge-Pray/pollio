@@ -1,4 +1,4 @@
-import { Button } from "../components/ui/button.js";
+import { Button } from "../components/ui/button";
 import {
   Form,
   FormControl,
@@ -7,7 +7,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "../components/ui/form.js";
+} from "../components/ui/form";
 import {
   Select,
   SelectContent,
@@ -16,14 +16,14 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "../components/ui/select.js";
-import { Switch } from "../components/ui/switch.js";
-import { Input } from "../components/ui/input.js";
+} from "../components/ui/select";
+import { Switch } from "../components/ui/switch";
+import { Input } from "../components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 
 function Landingpage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -175,7 +175,7 @@ function Landingpage() {
                         <Input
                           placeholder={`Option ${index + 1}...`}
                           {...field}
-                          value={field.value || ""} // Ensure value is never undefined
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -211,10 +211,17 @@ function Landingpage() {
             {isLoading ? "Creating Poll..." : "Create Poll"}
           </Button>
         </form>
-        <NavLink to="/publicpoll">
-          <Button className="my-2 w-full">View Public Polls</Button>
-        </NavLink>
       </Form>
+
+      <div className="mt-4">
+        <Button
+          onClick={() => navigate("/publicpoll")}
+          variant="neutral"
+          className="w-full"
+        >
+          View Public Polls
+        </Button>
+      </div>
     </div>
   );
 }

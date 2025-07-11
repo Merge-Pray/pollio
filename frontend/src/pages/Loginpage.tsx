@@ -13,42 +13,85 @@ import { Input } from "../components/ui/input.js";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useState } from "react";
 
 const Loginpage = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
   const formSchema = z.object({
-    email: z.string().email({
-      message: "Invalid email address.",
+    identifier: z.string().min(1, {
+      message: "Email or username is required.",
     }),
-    password: z.string().min(6, {
-      message: "Password must be at least 6 characters.",
+    password: z.string().min(1, {
+      message: "Password is required.",
     }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      identifier: "",
       password: "",
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("http://localhost:3001/api/user/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          identifier: values.identifier,
+          password: values.password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Login failed");
+      }
+
+      const data = await response.json();
+      navigate("/");
+    } catch (error) {
+      console.error("Login error:", error);
+      setError(error instanceof Error ? error.message : "Login failed");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
-    <div>
+    <div className="max-w-md mx-auto mt-8 p-6">
+      <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
             control={form.control}
-            name="email"
+            name="identifier"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel>Email or Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your email" {...field} />
+                  <Input
+                    placeholder="Enter your email or username"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -71,10 +114,21 @@ const Loginpage = () => {
               </FormItem>
             )}
           />
-          <Button type="submit">Login</Button>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Login"}
+          </Button>
         </form>
       </Form>
-      <Button onClick={() => navigate("/login")}>Register</Button>
+
+      <div className="mt-4 text-center">
+        <Button
+          variant="link"
+          onClick={() => navigate("/register")}
+          className="text-sm cursor-pointer"
+        >
+          Don't have an account? Register
+        </Button>
+      </div>
     </div>
   );
 };

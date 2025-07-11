@@ -17,13 +17,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "..//components/ui/select.js";
-
+import { Switch } from "../components/ui/switch.js";
 import { Input } from "../components/ui/input.js";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
 
 function Landingpage() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
   const formSchema = z.object({
     question: z.string().min(2, {
       message: "Question must be at least 2 characters.",
@@ -34,6 +40,7 @@ function Landingpage() {
     options: z
       .array(z.string().min(1, "Option cannot be empty"))
       .min(2, "At least 2 options required"),
+    isPublic: z.boolean().default(false),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -42,18 +49,71 @@ function Landingpage() {
       question: "",
       numberOfOptions: "",
       options: [],
+      isPublic: false,
     },
   });
 
   const watchedNumberOfOptions = form.watch("numberOfOptions");
   const numberOfOptionsInt = parseInt(watchedNumberOfOptions) || 0;
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  // Update options array when numberOfOptions changes
+  useEffect(() => {
+    if (numberOfOptionsInt > 0) {
+      const currentOptions = form.getValues("options");
+      const newOptions = Array.from(
+        { length: numberOfOptionsInt },
+        (_, index) => currentOptions[index] || ""
+      );
+      form.setValue("options", newOptions);
+    }
+  }, [numberOfOptionsInt, form]);
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("http://localhost:3001/api/poll/quick", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: values.question,
+          options: values.options,
+          isPublic: values.isPublic,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create poll");
+      }
+
+      const data = await response.json();
+      console.log("Poll created successfully:", data);
+
+      form.reset();
+
+      // navigate
+    } catch (error) {
+      console.error("Poll creation error:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to create poll"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
     <div className="my-10 w-1/2 mx-auto">
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
@@ -62,9 +122,9 @@ function Landingpage() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-2xl">Create a quick-poll</FormLabel>
-                <FormDescription>Enter your poll a name</FormDescription>
+                <FormDescription>Enter your poll question</FormDescription>
                 <FormControl>
-                  <Input placeholder="..." {...field} />
+                  <Input placeholder="What's your favorite color?" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -116,6 +176,7 @@ function Landingpage() {
                         <Input
                           placeholder={`Option ${index + 1}...`}
                           {...field}
+                          value={field.value || ""} // Ensure value is never undefined
                         />
                       </FormControl>
                       <FormMessage />
@@ -126,7 +187,30 @@ function Landingpage() {
             </div>
           )}
 
-          <Button type="submit">Create Poll</Button>
+          <FormField
+            control={form.control}
+            name="isPublic"
+            render={({ field: { value, onChange } }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-md border p-2">
+                <div className="space-y-0">
+                  <FormDescription className="text-xs">
+                    Make this poll visible to everyone
+                  </FormDescription>
+                </div>
+                <FormControl>
+                  <Switch
+                    checked={Boolean(value)}
+                    onCheckedChange={onChange}
+                    className="scale-75"
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? "Creating Poll..." : "Create Poll"}
+          </Button>
         </form>
       </Form>
     </div>

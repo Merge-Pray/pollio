@@ -16,6 +16,7 @@ const DatePollSchema = new Schema({
   type: { type: String, default: "date" },
   options: [DateOptionSchema],
   createdAt: { type: Date, default: Date.now },
+  expirationDate: { type: Date },
   expired: Boolean,
   creatorId: {
     type: Schema.Types.ObjectId,

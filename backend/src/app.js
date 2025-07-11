@@ -5,6 +5,7 @@ import { errorHandler } from "./middleware/error-handler.js";
 
 import db from "./db/db.js";
 import cookieParser from "cookie-parser";
+import { userRouter } from "./routes/user.js";
 import { pollRouter } from "./routes/poll.js";
 
 const app = express();
@@ -16,14 +17,15 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "*",
+    origin: true,
     credentials: true,
   })
 );
 
 const PORT = process.env.PORT || 3001;
 
-app.use("/api", pollRouter);
+app.use("/api/user", userRouter);
+app.use("/api/poll", pollRouter);
 
 app.use(errorHandler);
 

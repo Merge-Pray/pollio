@@ -1,9 +1,20 @@
 import { model, Schema } from "mongoose";
 
 const UserSchema = new Schema({
-  username: String,
-  email: String,
-  hashedPassword: String,
+  username: {
+    type: String,
+    unique: true,
+    required: true,
+  },
+  email: {
+    type: String,
+    unique: true,
+    required: true,
+  },
+  hashedPassword: {
+    type: String,
+    required: true,
+  },
   polls: [
     {
       poll: {

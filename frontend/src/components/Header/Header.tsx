@@ -3,6 +3,7 @@ import { Card } from "../ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
+import { Button } from "../ui/button";
 
 const Header = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -34,28 +35,31 @@ const Header = () => {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center mt-6 ">
-      <Card className="flex flex-col gap-0.5 justify-center items-center sm:py-2 sm:px-16 mb-4 ">
-        <NavLink  to="/">
-          <img 
+    <div className="flex flex-col justify-center items-center mt-6">
+      <Card className="flex flex-row gap-4 justify-between items-center sm:py-2 sm:px-16 mb-4 w-full">
+        <NavLink to="/">
+          <img
             src={isDarkMode ? "/p-logo-w.svg" : "/p-logo-s.svg"}
             alt="logo"
             className="h-20"
           />
         </NavLink>
-        {/* <p className="font-light">simple.clean.fast</p> */}
-        <Switch
-          id="darkmode"
-          className="absolute top-[0.5rem] right-2"
-          checked={isDarkMode}
-          onCheckedChange={toggleDarkMode}
-        />
-        <Label
-          htmlFor="darkmode"
-          className="text-xs absolute top-[2.5rem] right-4.5"
-        >
-          {isDarkMode ? "light" : "dark"}
-        </Label>
+        <div className="flex items-center gap-4">
+          <NavLink
+            to="/login"
+            className="text-sm cursor-pointer border-black border-2 px-1 py-0.5 rounded-2xl transition-transform transform hover:scale-105"
+          >
+            Login
+          </NavLink>
+          <Switch
+            id="darkmode"
+            checked={isDarkMode}
+            onCheckedChange={toggleDarkMode}
+          />
+          <Label htmlFor="darkmode" className="text-xs">
+            {isDarkMode ? "light" : "dark"}
+          </Label>
+        </div>
       </Card>
     </div>
   );

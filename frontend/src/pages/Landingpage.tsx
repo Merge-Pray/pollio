@@ -23,7 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { NavLink, useNavigate } from "react-router";
 
 function Landingpage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -211,6 +211,9 @@ function Landingpage() {
             {isLoading ? "Creating Poll..." : "Create Poll"}
           </Button>
         </form>
+        <NavLink to="/publicpoll">
+          <Button className="my-2 w-full">View Public Polls</Button>
+        </NavLink>
       </Form>
     </div>
   );

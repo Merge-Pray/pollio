@@ -39,7 +39,7 @@ const Header = () => {
       <Card className="flex flex-row gap-4 justify-between items-center sm:py-2 sm:px-16 mb-4 w-full">
         <NavLink to="/">
           <img
-            src={isDarkMode ? "/p-logo-w.svg" : "/p-logo-s.svg"}
+            src={isDarkMode ? "/p-logo-w2.svg" : "/p-logo-s2.svg"}
             alt="logo"
             className="h-20"
           />

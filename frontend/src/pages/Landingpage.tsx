@@ -120,7 +120,7 @@ function Landingpage() {
             name="question"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-2xl">Create a quick-poll</FormLabel>
+                <FormLabel className="text-2xl font-semibold">Create a quick-poll</FormLabel>
                 <FormDescription>Enter your poll question</FormDescription>
                 <FormControl>
                   <Input placeholder="What's your favorite color?" {...field} />
@@ -141,7 +141,7 @@ function Landingpage() {
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-[200px]">
                       <SelectValue placeholder="number of answers" />
                     </SelectTrigger>
                   </FormControl>

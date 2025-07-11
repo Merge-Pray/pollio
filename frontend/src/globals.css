@@ -15,7 +15,7 @@
   --ring: oklch(0% 0 0);
   --overlay: oklch(0% 0 0 / 0.8);
   --shadow: 2px 2px 0px 0px var(--border);
-  --chart-1: #00c7ef;
+  --chart-1: #019dbd;
   --chart-2: #ff7a05;
   --chart-3: #7a83ff;
   --chart-4: #ff4d50;
@@ -32,7 +32,7 @@
   --border: oklch(0% 0 0);
   --ring: oklch(100% 0 0);
   --shadow: 2px 2px 0px 0px var(--border);
-  --chart-1: #00c7ef;
+  --chart-1: #019dbd;
   --chart-2: #eb6d00;
   --chart-3: #7a83ff;
   --chart-4: #ff6669;

@@ -285,7 +285,7 @@ const QuickpollVote = () => {
               >
                 {isVoting ? "Voting..." : "Vote"}
               </Button>
-              <Button onClick={() => navigate("/")} variant="outline">
+              <Button onClick={() => navigate("/")} variant="noShadow">
                 Back to Home
               </Button>
             </div>
@@ -295,14 +295,14 @@ const QuickpollVote = () => {
               <div className="flex gap-2">
                 <Button
                   onClick={handleShareVote}
-                  variant="secondary"
+                  variant="noShadow"
                   className="flex-1 cursor-pointer"
                 >
                   Share Vote Link
                 </Button>
                 <Button
                   onClick={handleShareResults}
-                  variant="secondary"
+                  variant="noShadow"
                   className="flex-1 cursor-pointer"
                 >
                   Share Results Link

@@ -4,8 +4,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
+import useUserStore from "@/hooks/userstore";
 
 const Header = () => {
+  const currentUser = useUserStore((state) => state.currentUser);
+  const setCurrentUser = useUserStore((state) => state.setCurrentUser);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
@@ -45,12 +48,20 @@ const Header = () => {
           />
         </NavLink>
         <div className="flex items-center gap-4">
-          <NavLink
-            to="/login"
-            className="text-sm cursor-pointer border-black border-2 px-1 py-0.5 rounded-2xl transition-transform transform hover:scale-105"
-          >
-            Login
-          </NavLink>
+          {currentUser ? (
+            <NavLink to={`/user/${currentUser.userID}`}>
+              <p>
+                Willkommen <span>{`${currentUser.username}`}</span>{" "}
+              </p>
+            </NavLink>
+          ) : (
+            <NavLink
+              to="/login"
+              className="text-sm cursor-pointer border-black border-2 px-1 py-0.5 rounded-2xl transition-transform transform hover:scale-105"
+            >
+              Login
+            </NavLink>
+          )}
           <Switch
             id="darkmode"
             checked={isDarkMode}
@@ -64,4 +75,5 @@ const Header = () => {
     </div>
   );
 };
+
 export default Header;

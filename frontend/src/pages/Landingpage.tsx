@@ -56,7 +56,6 @@ function Landingpage() {
   const watchedNumberOfOptions = form.watch("numberOfOptions");
   const numberOfOptionsInt = parseInt(watchedNumberOfOptions) || 0;
 
-  // Update options array when numberOfOptions changes
   useEffect(() => {
     if (numberOfOptionsInt > 0) {
       const currentOptions = form.getValues("options");
@@ -95,7 +94,7 @@ function Landingpage() {
 
       form.reset();
 
-      // navigate
+      navigate(`/quickpoll/vote/${data.poll.id}`);
     } catch (error) {
       console.error("Poll creation error:", error);
       setError(

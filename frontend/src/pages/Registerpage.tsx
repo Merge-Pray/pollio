@@ -177,9 +177,9 @@ const Registerpage = () => {
 
       <div className="mt-4 text-center">
         <Button
-          variant="link"
+          variant="noShadow"
           onClick={() => navigate("/login")}
-          className="text-sm cursor-pointer"
+          className="text-xs bg-white h-3 cursor-pointer"
         >
           Already registered? Login
         </Button>

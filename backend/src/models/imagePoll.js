@@ -15,6 +15,7 @@ const ImagePollSchema = new Schema({
   type: { type: String, default: "image" },
   options: [ImageOptionSchema],
   createdAt: { type: Date, default: Date.now },
+  expirationDate: { type: Date },
   expired: Boolean,
   multipleChoice: Boolean,
   creatorId: {

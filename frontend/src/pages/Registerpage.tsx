@@ -13,22 +13,45 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useNavigate } from "react-router";
+import { useState } from "react";
 
 const Registerpage = () => {
-  const formSchema = z.object({
-    username: z.string().min(2, {
-      message: "Username must be at least 2 characters.",
-    }),
-    email: z.string().email({
-      message: "Invalid email address.",
-    }),
-    password: z.string().min(6, {
-      message: "Password must be at least 6 characters.",
-    }),
-    confirmPassword: z.string().min(6, {
-      message: "Confirm Password must be at least 6 characters.",
-    }),
-  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const formSchema = z
+    .object({
+      username: z
+        .string()
+        .min(1, { message: "Username is required." })
+        .min(3, { message: "Username must be at least 3 characters long." })
+        .regex(/^[^@]*$/, { message: "Username cannot contain @ symbol." }),
+
+      email: z.string().email({ message: "Invalid email format." }),
+
+      password: z
+        .string()
+        .min(10, { message: "Password must be at least 10 characters long." })
+        .regex(/[A-Z]/, {
+          message: "Password must contain at least one uppercase letter (A-Z).",
+        })
+        .regex(/[a-z]/, {
+          message: "Password must contain at least one lowercase letter (a-z).",
+        })
+        .regex(/[!@#$%^&*(),.?":{}|<>]/, {
+          message:
+            'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>).',
+        }),
+
+      confirmPassword: z
+        .string()
+        .min(1, { message: "Confirm Password is required." }),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: "Passwords don't match",
+      path: ["confirmPassword"],
+    });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,16 +63,52 @@ const Registerpage = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("http://localhost:3001/api/user/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          username: values.username,
+          email: values.email,
+          password: values.password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Registration failed");
+      }
+
+      const data = await response.json();
+      console.log("Registration successful:", data);
+      navigate("/");
+    } catch (error) {
+      console.error("Registration error:", error);
+      setError(error instanceof Error ? error.message : "Registration failed");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
-  const navigate = useNavigate();
-
   return (
-    <div>
+    <div className="max-w-md mx-auto mt-8 p-6">
+      <h1 className="text-2xl font-bold mb-6 text-center">Register</h1>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
             control={form.control}
             name="username"
@@ -110,12 +169,21 @@ const Registerpage = () => {
               </FormItem>
             )}
           />
-          <Button type="submit">Register</Button>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Registering..." : "Register"}
+          </Button>
         </form>
       </Form>
-      <Button onClick={() => navigate("/login")}>
-        Already registered? Login
-      </Button>
+
+      <div className="mt-4 text-center">
+        <Button
+          variant="link"
+          onClick={() => navigate("/login")}
+          className="text-sm cursor-pointer"
+        >
+          Already registered? Login
+        </Button>
+      </div>
     </div>
   );
 };

@@ -7,6 +7,7 @@ const TextOptionSchema = new Schema(
   },
   { _id: false }
 );
+
 const TextPollSchema = new Schema({
   title: String,
   question: String,
@@ -14,6 +15,7 @@ const TextPollSchema = new Schema({
   options: [TextOptionSchema],
   createdAt: { type: Date, default: Date.now },
   expired: Boolean,
+  expirationDate: { type: Date },
   multipleChoice: Boolean,
   creatorId: {
     type: Schema.Types.ObjectId,

@@ -1,6 +1,6 @@
 import express from "express";
-import createUser from "../controllers/user.js";
+import { createQuickPoll } from "../controllers/poll.js";
 
 export const pollRouter = express.Router();
 
-pollRouter.post("/register", createUser);
+pollRouter.post("/quick", createQuickPoll);

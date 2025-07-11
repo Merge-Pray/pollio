@@ -95,3 +95,5 @@ export const logout = (req, res) => {
   });
   res.status(200).json({ message: "Logged out successfully" });
 };
+
+export const getPolls = async (req, res, next) => {};

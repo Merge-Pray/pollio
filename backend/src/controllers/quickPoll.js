@@ -161,3 +161,23 @@ export const voteOnQuickPoll = async (req, res, next) => {
     return next(error);
   }
 };
+
+export const getPublicQuick = async (req, res, next) => {
+  try {
+    const publicPolls = await QuickPollModel.find(
+      { isPublic: true },
+      { question: 1, _id: 1, createdAt: 1 }
+    ).sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      message: "Public quick polls retrieved successfully",
+      polls: publicPolls.map((poll) => ({
+        id: poll._id,
+        question: poll.question,
+        createdAt: poll.createdAt,
+      })),
+    });
+  } catch (error) {
+    return next(error);
+  }
+};

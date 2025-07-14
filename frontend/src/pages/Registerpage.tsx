@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useNavigate } from "react-router";
 import { useState } from "react";
+import { API_URL } from "@/lib/config.js";
 
 const Registerpage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -68,7 +69,7 @@ const Registerpage = () => {
     setError(null);
 
     try {
-      const response = await fetch(`${process.env.VITE_BACKENDPATH}/api/user/register`, {
+      const response = await fetch(`${API_URL}/api/user/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

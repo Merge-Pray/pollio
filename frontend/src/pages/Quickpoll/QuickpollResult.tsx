@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { API_URL } from "@/lib/config";
 
 interface PollOption {
   text: string;
@@ -42,9 +43,7 @@ const QuickpollResult = () => {
       }
 
       try {
-        const response = await fetch(
-          `${process.env.VITE_BACKENDPATH}/api/poll/quick/${id}`
-        );
+        const response = await fetch(`${API_URL}/api/poll/quick/${id}`);
 
         if (!response.ok) {
           const errorData = await response.json();

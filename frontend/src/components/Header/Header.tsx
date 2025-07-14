@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import useUserStore from "@/hooks/userstore";
 import { useNavigate } from "react-router";
+import { API_URL } from "@/lib/config";
 
 const Header = () => {
   const currentUser = useUserStore((state) => state.currentUser);
@@ -40,7 +41,7 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    fetch("https://pollio.onrender.com/api/user/logout", {
+    fetch(`${API_URL}/api/user/logout`, {
       method: "POST",
       credentials: "include",
     })

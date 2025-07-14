@@ -11,6 +11,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Label } from "../../components/ui/label";
 import { Input } from "../../components/ui/input";
+import { API_URL } from "@/lib/config";
 
 interface PollOption {
   text: string;
@@ -87,7 +88,7 @@ const QuickpollVote = () => {
         }
 
         const response = await fetch(
-          `${process.env.VITE_BACKENDPATH}/api/poll/quick/${id}`
+          `${API_URL}/api/poll/quick/${id}` // Fixed: Use API_URL instead of process.env
         );
 
         if (!response.ok) {
@@ -117,20 +118,17 @@ const QuickpollVote = () => {
     setError(null);
 
     try {
-      const response = await fetch(
-        `${process.env.VITE_BACKENDPATH}/api/poll/quick/${id}/vote`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            optionIndex: parseInt(selectedOption),
-            voterName: voterName.trim(),
-            fingerprint: browserFingerprint,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/poll/quick/${id}/vote`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          optionIndex: parseInt(selectedOption),
+          voterName: voterName.trim(),
+          fingerprint: browserFingerprint,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();

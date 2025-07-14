@@ -20,6 +20,7 @@ import ImagepollResult from "../pages/Personalpoll/ImagepollResult";
 import TextpollVote from "../pages/Personalpoll/TextpollVote";
 import DatepollVote from "../pages/Personalpoll/DatepollVote";
 import ImagepollVote from "../pages/Personalpoll/ImagepollVote";
+import Polloverview from "@/pages/Polloverview";
 
 export const router = createBrowserRouter([
   {
@@ -46,6 +47,7 @@ export const router = createBrowserRouter([
       { path: "textpoll/result/:id", element: <TextpollResult /> },
       { path: "datepoll/result/:id", element: <DatepollResult /> },
       { path: "imagepoll/result/:id", element: <ImagepollResult /> },
+      { path: "polloverview", element: <Polloverview /> },
     ],
   },
 ]);

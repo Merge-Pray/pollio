@@ -114,8 +114,8 @@ function Landingpage() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row justify-between items-center gap-10 min-h-screen">
-      <div className="my-10 w-full lg:w-1/2 mx-auto">
+    <div className="flex flex-col lg:flex-row justify-center items-center gap-10 w-[80%] mx-auto">
+      <div className="my-10 w-full lg:w-2/3 mx-auto">
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
@@ -137,6 +137,7 @@ function Landingpage() {
                     <Input
                       placeholder="What's your favorite color?"
                       {...field}
+                      className="w-full"
                     />
                   </FormControl>
                   <FormMessage />
@@ -188,6 +189,7 @@ function Landingpage() {
                             placeholder={`Option ${index + 1}...`}
                             {...field}
                             value={field.value || ""}
+                            className="w-full"
                           />
                         </FormControl>
                         <FormMessage />
@@ -236,7 +238,7 @@ function Landingpage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-center w-full lg:w-1/2">
+      <div className="flex items-center justify-center w-full lg:w-2/3">
         <NavLink to="/polloverview">
           <Card className="min-w-[300px]">
             <CardHeader>

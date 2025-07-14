@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
 import useUserStore from "@/hooks/userstore.js";
+import { API_URL } from "@/lib/config.js";
 
 const Loginpage = () => {
   const setCurrentUser = useUserStore((state) => state.setCurrentUser);
@@ -44,7 +45,7 @@ const Loginpage = () => {
     setError(null);
 
     try {
-      const response = await fetch(`${process.env.VITE_BACKENDPATH}/api/user/login`, {
+      const response = await fetch(`${API_URL}/api/user/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

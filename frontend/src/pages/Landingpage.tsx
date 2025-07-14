@@ -24,6 +24,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { API_URL } from "@/lib/config";
 
 function Landingpage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -72,7 +73,7 @@ function Landingpage() {
     setError(null);
 
     try {
-      const response = await fetch(`${process.env.VITE_BACKENDPATH}/api/poll/quick`, {
+      const response = await fetch(`${API_URL}/api/poll/quick`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

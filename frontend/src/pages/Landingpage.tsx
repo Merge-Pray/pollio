@@ -23,7 +23,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { NavLink, useNavigate } from "react-router";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { API_URL } from "@/lib/config";
 
 function Landingpage() {
@@ -107,122 +114,140 @@ function Landingpage() {
   }
 
   return (
-    <div className="my-10 w-1/2 mx-auto">
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
-        </div>
-      )}
+    <div className="flex flex-col lg:flex-row justify-between items-center gap-10 min-h-screen">
+      <div className="my-10 w-full lg:w-1/2 mx-auto">
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-            control={form.control}
-            name="question"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-2xl font-semibold">
-                  Create a quick-poll
-                </FormLabel>
-                <FormDescription>Enter your poll question</FormDescription>
-                <FormControl>
-                  <Input placeholder="What's your favorite color?" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="numberOfOptions"
-            render={({ field }) => (
-              <FormItem>
-                <FormDescription>Set amount of answers</FormDescription>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value} // Changed from defaultValue to value
-                >
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <FormField
+              control={form.control}
+              name="question"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-2xl font-semibold">
+                    Create a quick-poll
+                  </FormLabel>
+                  <FormDescription>Enter your poll question</FormDescription>
                   <FormControl>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="number of answers" />
-                    </SelectTrigger>
+                    <Input
+                      placeholder="What's your favorite color?"
+                      {...field}
+                    />
                   </FormControl>
-                  <SelectContent>
-                    <SelectGroup>
-                      {Array.from({ length: 9 }, (_, i) => i + 2).map((num) => (
-                        <SelectItem key={num} value={num.toString()}>
-                          {num} options
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {numberOfOptionsInt > 0 && (
-            <div className="space-y-4">
-              <FormDescription>Poll Options</FormDescription>
-              {Array.from({ length: numberOfOptionsInt }, (_, index) => (
-                <FormField
-                  key={index}
-                  control={form.control}
-                  name={`options.${index}`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          placeholder={`Option ${index + 1}...`}
-                          {...field}
-                          value={field.value || ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ))}
-            </div>
-          )}
+            <FormField
+              control={form.control}
+              name="numberOfOptions"
+              render={({ field }) => (
+                <FormItem>
+                  <FormDescription>Set amount of answers</FormDescription>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="number of answers" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectGroup>
+                        {Array.from({ length: 9 }, (_, i) => i + 2).map(
+                          (num) => (
+                            <SelectItem key={num} value={num.toString()}>
+                              {num} options
+                            </SelectItem>
+                          )
+                        )}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="isPublic"
-            render={({ field: { value, onChange } }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-md border p-2">
-                <div className="space-y-0">
-                  <FormDescription className="text-xs">
-                    Make this poll visible to everyone
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={Boolean(value)}
-                    onCheckedChange={onChange}
-                    className="scale-75"
+            {numberOfOptionsInt > 0 && (
+              <div className="space-y-4">
+                <FormDescription>Poll Options</FormDescription>
+                {Array.from({ length: numberOfOptionsInt }, (_, index) => (
+                  <FormField
+                    key={index}
+                    control={form.control}
+                    name={`options.${index}`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Input
+                            placeholder={`Option ${index + 1}...`}
+                            {...field}
+                            value={field.value || ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </FormControl>
-              </FormItem>
+                ))}
+              </div>
             )}
-          />
 
-          <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? "Creating Poll..." : "Create Poll"}
+            <FormField
+              control={form.control}
+              name="isPublic"
+              render={({ field: { value, onChange } }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-md border p-2">
+                  <div className="space-y-0">
+                    <FormDescription className="text-xs">
+                      Make this poll visible to everyone
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={Boolean(value)}
+                      onCheckedChange={onChange}
+                      className="scale-75"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? "Creating Poll..." : "Create Poll"}
+            </Button>
+          </form>
+        </Form>
+
+        <div className="mt-4">
+          <Button
+            onClick={() => navigate("/publicpoll")}
+            variant="neutral"
+            className="w-full"
+          >
+            View Public Polls
           </Button>
-        </form>
-      </Form>
+        </div>
+      </div>
 
-      <div className="mt-4">
-        <Button
-          onClick={() => navigate("/publicpoll")}
-          variant="neutral"
-          className="w-full"
-        >
-          View Public Polls
-        </Button>
+      <div className="flex items-center justify-center w-full lg:w-1/2">
+        <NavLink to="/polloverview">
+          <Card className="min-w-[300px]">
+            <CardHeader>
+              <CardTitle className="text-2xl">Polloverview</CardTitle>
+              <CardDescription className="text-lg">
+                Description for Poll 3
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">Content for Poll 3</CardContent>
+          </Card>
+        </NavLink>
       </div>
     </div>
   );

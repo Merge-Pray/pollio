@@ -21,6 +21,7 @@ import TextpollVote from "../pages/Personalpoll/TextpollVote";
 import DatepollVote from "../pages/Personalpoll/DatepollVote";
 import ImagepollVote from "../pages/Personalpoll/ImagepollVote";
 import Polloverview from "@/pages/Polloverview";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 export const router = createBrowserRouter([
   {
@@ -35,19 +36,117 @@ export const router = createBrowserRouter([
       { path: "quickpoll/details/:id", element: <QuickpollDetails /> },
       { path: "quickpoll/vote/:id", element: <QuickpollVote /> },
       { path: "publicpoll", element: <Publicpoll /> },
-      { path: "user/:id", element: <Userpage /> },
-      { path: "user/votes/:id", element: <Uservotes /> },
-      { path: "personalpoll", element: <Personalpoll /> },
-      { path: "textpoll", element: <Textpoll /> },
-      { path: "datepoll", element: <Datepoll /> },
-      { path: "imagepoll", element: <Imagepoll /> },
-      { path: "textpoll/vote/:id", element: <TextpollVote /> },
-      { path: "datepoll/vote/:id", element: <DatepollVote /> },
-      { path: "imagepoll/vote/:id", element: <ImagepollVote /> },
-      { path: "textpoll/result/:id", element: <TextpollResult /> },
-      { path: "datepoll/result/:id", element: <DatepollResult /> },
-      { path: "imagepoll/result/:id", element: <ImagepollResult /> },
-      { path: "polloverview", element: <Polloverview /> },
+      {
+        path: "user/:id",
+        element: (
+          <ProtectedRoute>
+            <Userpage />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "user/votes/:id",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <Uservotes />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "personalpoll",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <Personalpoll />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "textpoll",
+        element: (
+          <ProtectedRoute>
+            <Textpoll />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "datepoll",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <Datepoll />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "imagepoll",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <Imagepoll />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "textpoll/vote/:id",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <TextpollVote />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "datepoll/vote/:id",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <DatepollVote />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "imagepoll/vote/:id",
+        element: (
+          <ProtectedRoute>
+            <ImagepollVote />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "textpoll/result/:id",
+        element: (
+          <ProtectedRoute>
+            {" "}
+            <TextpollResult />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "datepoll/result/:id",
+        element: (
+          <ProtectedRoute>
+            <DatepollResult />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "imagepoll/result/:id",
+        element: (
+          <ProtectedRoute>
+            <ImagepollResult />{" "}
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "polloverview",
+        element: (
+          <ProtectedRoute>
+            <Polloverview />
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
 ]);

@@ -65,7 +65,7 @@ const Loginpage = () => {
       const data = await response.json();
       setCurrentUser(data.user);
       console.log(data.user);
-      navigate(`/user/${data.user.id}`);
+      navigate(`/polloverview`);
     } catch (error) {
       console.error("Login error:", error);
       setError(error instanceof Error ? error.message : "Login failed");

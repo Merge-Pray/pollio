@@ -5,11 +5,13 @@ import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import useUserStore from "@/hooks/userstore";
+import { useNavigate } from "react-router";
 
 const Header = () => {
   const currentUser = useUserStore((state) => state.currentUser);
   const setCurrentUser = useUserStore((state) => state.setCurrentUser);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -37,6 +39,18 @@ const Header = () => {
     }
   };
 
+  const handleLogout = () => {
+    fetch("http://localhost:3001/api/user/logout", {
+      method: "POST",
+      credentials: "include",
+    })
+      .then(() => {
+        setCurrentUser(null);
+        navigate("/");
+      })
+      .catch((error) => console.error("Error logging out:", error));
+  };
+
   return (
     <div className="flex flex-col justify-center items-center mt-6">
       <Card className="flex flex-row gap-4 justify-between items-center sm:py-2 sm:px-16 mb-4 w-full">
@@ -49,11 +63,16 @@ const Header = () => {
         </NavLink>
         <div className="flex items-center gap-4">
           {currentUser ? (
-            <NavLink to={`/user/${currentUser.userID}`}>
-              <p>
-                Willkommen <span>{`${currentUser.username}`}</span>{" "}
-              </p>
-            </NavLink>
+            <>
+              <NavLink to={`/user/${currentUser.id}`}>
+                <p>
+                  Willkommen <span>{`${currentUser.username}`}</span>
+                </p>
+              </NavLink>
+              <Button onClick={handleLogout} className="text-sm cursor-pointer">
+                Logout
+              </Button>
+            </>
           ) : (
             <NavLink
               to="/login"

@@ -80,7 +80,10 @@ export const verifyLogin = async (req, res, next) => {
 
     return res.status(200).json({
       message: `Login successful`,
-      username: user.username,
+      user: {
+        id: user.id,
+        username: user.username,
+      },
     });
   } catch (error) {
     return next(error);
@@ -96,4 +99,32 @@ export const logout = (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 };
 
-export const getPolls = async (req, res, next) => {};
+export const getUserData = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const user = await UserModel.findById(id); //
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      id: user._id,
+      username: user.username,
+      email: user.email,
+    });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return next(error);
+  }
+};
+
+export const getPolls = async (req, res, next) => {
+  try {
+    const user = await UserModel.findById(req.params.id);
+    res.json(user);
+    next();
+  } catch (err) {
+    res.status(500).json({ error: "User not found" });
+  }
+};

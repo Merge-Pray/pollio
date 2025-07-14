@@ -72,7 +72,7 @@ function Landingpage() {
     setError(null);
 
     try {
-      const response = await fetch("http://localhost:3001/api/poll/quick", {
+      const response = await fetch("https://pollio.onrender.com/api/poll/quick", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

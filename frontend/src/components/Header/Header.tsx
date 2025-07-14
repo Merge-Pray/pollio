@@ -40,7 +40,7 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    fetch("http://localhost:3001/api/user/logout", {
+    fetch("https://pollio.onrender.com/api/user/logout", {
       method: "POST",
       credentials: "include",
     })

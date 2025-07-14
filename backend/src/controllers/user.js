@@ -1,5 +1,5 @@
-import { generateToken } from "../../libs/jwt.js";
-import { hashPassword, comparePassword } from "../../libs/pw.js";
+import { generateToken } from "../libs/jwt.js";
+import { hashPassword, comparePassword } from "../libs/pw.js";
 import UserModel from "../models/user.js";
 
 export const createUser = async (req, res, next) => {

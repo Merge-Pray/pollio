@@ -30,6 +30,10 @@ export default function Navigation() {
       .catch((error) => console.error("Error logging out:", error));
   };
 
+  const handleLoginRedirect = () => {
+    navigate("/login");
+  };
+
   return (
     <NavigationMenu className="z-5">
       <NavigationMenuList>
@@ -40,9 +44,7 @@ export default function Navigation() {
                 {currentUser.username}
               </NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid w-[300px] gap-3 p-2 lg:grid-cols-[.75fr_1fr]">
-                  <li className="row-span-3"></li>
-
+                <ul className="grid w-[300px] gap-3 p-2 ">
                   <ListItem
                     href={`/user/${currentUser.id}`}
                     title="Your Polls"
@@ -64,7 +66,10 @@ export default function Navigation() {
           </>
         ) : (
           <NavigationMenuItem>
-            <NavigationMenuLink href="/login" className="text-sm">
+            <NavigationMenuLink
+              className="text-sm"
+              onClick={handleLoginRedirect}
+            >
               Login
             </NavigationMenuLink>
           </NavigationMenuItem>

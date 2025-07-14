@@ -26,6 +26,9 @@ const PORT = process.env.PORT || 3001;
 
 app.use("/api/user", userRouter);
 app.use("/api/poll", pollRouter);
+app.get("/", (req, res) => {
+  res.send("hello");
+});
 
 app.use(errorHandler);
 

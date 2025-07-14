@@ -164,10 +164,20 @@ export const voteOnQuickPoll = async (req, res, next) => {
 
 export const getPublicQuick = async (req, res, next) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const totalPolls = await QuickPollModel.countDocuments({ isPublic: true });
+    const totalPages = Math.ceil(totalPolls / limit);
+
     const publicPolls = await QuickPollModel.find(
       { isPublic: true },
       { question: 1, _id: 1, createdAt: 1 }
-    ).sort({ createdAt: -1 });
+    )
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     return res.status(200).json({
       message: "Public quick polls retrieved successfully",
@@ -176,6 +186,13 @@ export const getPublicQuick = async (req, res, next) => {
         question: poll.question,
         createdAt: poll.createdAt,
       })),
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalPolls: totalPolls,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
     });
   } catch (error) {
     return next(error);

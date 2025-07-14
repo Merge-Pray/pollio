@@ -31,6 +31,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { API_URL } from "@/lib/config";
 
 function Landingpage() {
   const [isLoading, setIsLoading] = useState(false);

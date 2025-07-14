@@ -68,7 +68,7 @@ const Registerpage = () => {
     setError(null);
 
     try {
-      const response = await fetch("https://pollio.onrender.com/api/user/register", {
+      const response = await fetch(`${process.env.VITE_BACKENDPATH}/api/user/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

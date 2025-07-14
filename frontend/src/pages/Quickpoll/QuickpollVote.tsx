@@ -87,7 +87,7 @@ const QuickpollVote = () => {
         }
 
         const response = await fetch(
-          `https://pollio.onrender.com/api/poll/quick/${id}`
+          `${process.env.VITE_BACKENDPATH}/api/poll/quick/${id}`
         );
 
         if (!response.ok) {
@@ -118,7 +118,7 @@ const QuickpollVote = () => {
 
     try {
       const response = await fetch(
-        `https://pollio.onrender.com/api/poll/quick/${id}/vote`,
+        `${process.env.VITE_BACKENDPATH}/api/poll/quick/${id}/vote`,
         {
           method: "POST",
           headers: {

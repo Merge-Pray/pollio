@@ -43,7 +43,7 @@ const QuickpollResult = () => {
 
       try {
         const response = await fetch(
-          `https://pollio.onrender.com/api/poll/quick/${id}`
+          `${process.env.VITE_BACKENDPATH}/api/poll/quick/${id}`
         );
 
         if (!response.ok) {

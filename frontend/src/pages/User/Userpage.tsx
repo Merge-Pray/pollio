@@ -11,7 +11,7 @@ const Userpage = () => {
   // useEffect(() => {
   //   const fetchUser = async () => {
   //     try {
-  //       const response = await fetch(`https://pollio.onrender.com/user/${id}`);
+  //       const response = await fetch(`${process.env.VITE_BACKENDPATH}/user/${id}`);
   //       const data = await response.json();
   //       setCurrentUser(data);
   //     } catch (error) {

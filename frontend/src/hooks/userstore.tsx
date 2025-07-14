@@ -42,7 +42,7 @@ const useUserStore = create<UserState>()(
       clearUser: () => set({ currentUser: null }),
       checkToken: async () => {
         try {
-          const response = await fetch(`https://pollio.onrender.com/user/${id}`, {
+          const response = await fetch(`${process.env.VITE_BACKENDPATH}/user/${id}`, {
             method: "GET",
             credentials: "include",
           });

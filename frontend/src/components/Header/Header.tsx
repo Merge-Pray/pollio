@@ -10,13 +10,10 @@ import { useNavigate } from "react-router";
 const Header = () => {
   const currentUser = useUserStore((state) => state.currentUser);
   const setCurrentUser = useUserStore((state) => state.setCurrentUser);
-  const checkToken = useUserStore((state) => state.checkToken);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkToken();
-
     const savedTheme = localStorage.getItem("theme");
     const prefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)"
@@ -29,7 +26,7 @@ const Header = () => {
       setIsDarkMode(false);
       document.documentElement.classList.remove("dark");
     }
-  }, [checkToken]);
+  }, []);
 
   const toggleDarkMode = (checked: boolean) => {
     setIsDarkMode(checked);
@@ -43,7 +40,7 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    fetch("/api/auth/logout", {
+    fetch("http://localhost:3001/api/user/logout", {
       method: "POST",
       credentials: "include",
     })
@@ -67,7 +64,7 @@ const Header = () => {
         <div className="flex items-center gap-4">
           {currentUser ? (
             <>
-              <NavLink to={`/user/${currentUser.userID}`}>
+              <NavLink to={`/user/${currentUser.id}`}>
                 <p>
                   Willkommen <span>{`${currentUser.username}`}</span>
                 </p>

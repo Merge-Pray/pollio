@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface User {
-  userID: string;
+  id: string;
   username: string;
 }
 
@@ -33,7 +33,7 @@ const useUserStore = create<UserState>()(
       setCurrentUser: (user) => {
         if (user) {
           set({
-            currentUser: { userID: user.userID, username: user.username },
+            currentUser: { id: user.id, username: user.username },
           });
         } else {
           set({ currentUser: null });

@@ -1,16 +1,21 @@
-import { verifyToken } from "../../libs/jwt";
+import jwt from "jsonwebtoken";
+import UserModel from "../models/user.js";
 
-export function authorizeJwt(req, res, next) {
-  const token = req.cookies.jwt;
+export const authorizeJwt = async (req, res, next) => {
   try {
-    const isVerified = verifyToken(token);
+    const token = req.cookies.jwt;
+    const isVerified = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await UserModel.findById(isVerified._id);
     if (isVerified) {
       return res.status(200).json({ token });
     }
-    res.status(401).json("Unauthorized");
+    if (!req.user) {
+      res.status(401).json("Benutzer nicht gefunden");
+    }
+
     next();
   } catch (error) {
     console.log(error);
-    return res.status(401).json("geht nicht");
+    return res.status(401).json("Nicht authorisiert");
   }
-}
+};

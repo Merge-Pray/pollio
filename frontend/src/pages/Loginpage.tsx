@@ -14,8 +14,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
+import useUserStore from "@/hooks/userstore.js";
 
 const Loginpage = () => {
+  const setCurrentUser = useUserStore((state) => state.setCurrentUser);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -60,7 +62,9 @@ const Loginpage = () => {
       }
 
       const data = await response.json();
-      navigate("/");
+      setCurrentUser(data.user);
+      console.log(data.user);
+      navigate(`/user/${data.user.id}`);
     } catch (error) {
       console.error("Login error:", error);
       setError(error instanceof Error ? error.message : "Login failed");

@@ -1,7 +1,6 @@
 import { generateToken } from "../../libs/jwt.js";
 import { hashPassword, comparePassword } from "../../libs/pw.js";
 import UserModel from "../models/user.js";
-import { verifyToken as decodeToken } from "../../libs/jwt.js";
 
 export const createUser = async (req, res, next) => {
   try {
@@ -81,7 +80,10 @@ export const verifyLogin = async (req, res, next) => {
 
     return res.status(200).json({
       message: `Login successful`,
-      username: user.username,
+      user: {
+        id: user.id,
+        username: user.username,
+      },
     });
   } catch (error) {
     return next(error);

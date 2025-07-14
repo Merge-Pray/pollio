@@ -5,13 +5,18 @@ import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import useUserStore from "@/hooks/userstore";
+import { useNavigate } from "react-router";
 
 const Header = () => {
   const currentUser = useUserStore((state) => state.currentUser);
   const setCurrentUser = useUserStore((state) => state.setCurrentUser);
+  const checkToken = useUserStore((state) => state.checkToken);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    checkToken();
+
     const savedTheme = localStorage.getItem("theme");
     const prefersDark = window.matchMedia(
       "(prefers-color-scheme: dark)"
@@ -24,7 +29,7 @@ const Header = () => {
       setIsDarkMode(false);
       document.documentElement.classList.remove("dark");
     }
-  }, []);
+  }, [checkToken]);
 
   const toggleDarkMode = (checked: boolean) => {
     setIsDarkMode(checked);
@@ -35,6 +40,18 @@ const Header = () => {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
+  };
+
+  const handleLogout = () => {
+    fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    })
+      .then(() => {
+        setCurrentUser(null);
+        navigate("/");
+      })
+      .catch((error) => console.error("Error logging out:", error));
   };
 
   return (
@@ -49,11 +66,16 @@ const Header = () => {
         </NavLink>
         <div className="flex items-center gap-4">
           {currentUser ? (
-            <NavLink to={`/user/${currentUser.userID}`}>
-              <p>
-                Willkommen <span>{`${currentUser.username}`}</span>{" "}
-              </p>
-            </NavLink>
+            <>
+              <NavLink to={`/user/${currentUser.userID}`}>
+                <p>
+                  Willkommen <span>{`${currentUser.username}`}</span>
+                </p>
+              </NavLink>
+              <Button onClick={handleLogout} className="text-sm cursor-pointer">
+                Logout
+              </Button>
+            </>
           ) : (
             <NavLink
               to="/login"

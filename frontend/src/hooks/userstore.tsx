@@ -1,20 +1,18 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-// Typ für User
 interface User {
   userID: string;
   username: string;
 }
 
-// Zustand und Aktionen
 interface UserState {
   currentUser: User | null;
-  setCurrentUser: (user: User) => void;
+  setCurrentUser: (user: User | null) => void;
   clearUser: () => void;
+  checkToken: () => void;
 }
 
-// Custom Storage für Zustand Persist
 const zustandStorage = {
   getItem: (name: string) => {
     const item = localStorage.getItem(name);
@@ -28,17 +26,40 @@ const zustandStorage = {
   },
 };
 
-// Store definieren
 const useUserStore = create<UserState>()(
   persist(
     (set) => ({
       currentUser: null,
-      setCurrentUser: (user) =>
-        set({ currentUser: { userID: user.userID, username: user.username } }),
+      setCurrentUser: (user) => {
+        if (user) {
+          set({
+            currentUser: { userID: user.userID, username: user.username },
+          });
+        } else {
+          set({ currentUser: null });
+        }
+      },
       clearUser: () => set({ currentUser: null }),
+      checkToken: async () => {
+        try {
+          const response = await fetch(`http://localhost:3001/user/${id}`, {
+            method: "GET",
+            credentials: "include",
+          });
+          if (response.ok) {
+            const user = await response.json();
+            set({ currentUser: user });
+          } else {
+            set({ currentUser: null });
+          }
+        } catch (error) {
+          console.error("Error checking token:", error);
+          set({ currentUser: null });
+        }
+      },
     }),
     {
-      name: "user-storage", // Key im localStorage
+      name: "user-storage",
       storage: zustandStorage,
     }
   )

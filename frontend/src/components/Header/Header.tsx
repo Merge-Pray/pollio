@@ -1,18 +1,12 @@
 import { NavLink } from "react-router";
-import { Card } from "../ui/card";
+
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
-import { Button } from "../ui/button";
-import useUserStore from "@/hooks/userstore";
-import { useNavigate } from "react-router";
-import { API_URL } from "@/lib/config";
+import Navigation from "../Navigation";
 
 const Header = () => {
-  const currentUser = useUserStore((state) => state.currentUser);
-  const setCurrentUser = useUserStore((state) => state.setCurrentUser);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -40,48 +34,22 @@ const Header = () => {
     }
   };
 
-  const handleLogout = () => {
-    fetch(`${API_URL}/api/user/logout`, {
-      method: "POST",
-      credentials: "include",
-    })
-      .then(() => {
-        setCurrentUser(null);
-        navigate("/");
-      })
-      .catch((error) => console.error("Error logging out:", error));
-  };
-
   return (
     <div className="flex flex-col justify-center items-center mt-6">
       <div className="flex flex-row gap-4 justify-between items-center sm:py-2 sm:px-16 mb-4 w-full">
-        <NavLink to="/">
-          <img
-            src={isDarkMode ? "/p-logo-w2.svg" : "/p-logo-s2.svg"}
-            alt="logo"
-            className="h-20"
-          />
-        </NavLink>
+        <div className="flex items-center">
+          <NavLink to="/">
+            <img
+              src={isDarkMode ? "/p-logo-w2.svg" : "/p-logo-s2.svg"}
+              alt="logo"
+              className="h-20"
+            />
+          </NavLink>
+        </div>
+        <div className="flex items-center justify-center flex-grow">
+          <Navigation />
+        </div>
         <div className="flex items-center gap-4">
-          {currentUser ? (
-            <>
-              <NavLink to={`/user/${currentUser.id}`}>
-                <p>
-                  Willkommen <span>{`${currentUser.username}`}</span>
-                </p>
-              </NavLink>
-              <Button onClick={handleLogout} className="text-sm cursor-pointer">
-                Logout
-              </Button>
-            </>
-          ) : (
-            <NavLink
-              to="/login"
-              className="text-sm cursor-pointer border-black border-2 px-1 py-0.5 rounded-2xl transition-transform transform hover:scale-105"
-            >
-              Login
-            </NavLink>
-          )}
           <Switch
             id="darkmode"
             checked={isDarkMode}

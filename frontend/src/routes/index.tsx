@@ -4,7 +4,6 @@ import Landingpage from "../pages/Landingpage";
 import Loginpage from "../pages/Loginpage";
 import Registerpage from "../pages/Registerpage";
 import Publicpoll from "../pages/Publicpoll";
-import Personalpoll from "../pages/Personalpoll/Personalpoll";
 import Userpage from "../pages/User/Userpage";
 import NotFound from "../pages/NotFound";
 import Datepoll from "../pages/Personalpoll/Datepoll";
@@ -50,15 +49,6 @@ export const router = createBrowserRouter([
           <ProtectedRoute>
             {" "}
             <Uservotes />{" "}
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "personalpoll",
-        element: (
-          <ProtectedRoute>
-            {" "}
-            <Personalpoll />{" "}
           </ProtectedRoute>
         ),
       },

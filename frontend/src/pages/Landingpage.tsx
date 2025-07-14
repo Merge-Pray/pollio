@@ -80,20 +80,17 @@ function Landingpage() {
     setError(null);
 
     try {
-      const response = await fetch(
-        `${process.env.VITE_BACKENDPATH}/api/poll/quick`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            question: values.question,
-            options: values.options,
-            isPublic: values.isPublic,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/poll/quick`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: values.question,
+          options: values.options,
+          isPublic: values.isPublic,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();

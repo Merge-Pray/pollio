@@ -1,4 +1,10 @@
+import { Card } from "@/components/ui/card";
+
 const Publicpoll = () => {
-  return <div>Publicpoll</div>;
+  return (
+    <>
+      <Card>Test</Card>
+    </>
+  );
 };
 export default Publicpoll;

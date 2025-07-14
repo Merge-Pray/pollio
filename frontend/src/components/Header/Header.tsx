@@ -53,7 +53,7 @@ const Header = () => {
 
   return (
     <div className="flex flex-col justify-center items-center mt-6">
-      <Card className="flex flex-row gap-4 justify-between items-center sm:py-2 sm:px-16 mb-4 w-full">
+      <div className="flex flex-row gap-4 justify-between items-center sm:py-2 sm:px-16 mb-4 w-full">
         <NavLink to="/">
           <img
             src={isDarkMode ? "/p-logo-w2.svg" : "/p-logo-s2.svg"}
@@ -90,7 +90,7 @@ const Header = () => {
             {isDarkMode ? "light" : "dark"}
           </Label>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

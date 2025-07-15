@@ -93,7 +93,7 @@ const CustomPollResult = () => {
   };
 
   const handleShareResults = async () => {
-    const resultsUrl = `https://pollio.rocks/custompoll/result/${id}`;
+    const resultsUrl = `${window.location.origin}/custompoll/result/${id}`;
 
     try {
       await navigator.clipboard.writeText(resultsUrl);

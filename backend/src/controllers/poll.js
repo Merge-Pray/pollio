@@ -184,45 +184,120 @@ export const generateVoteToken = async (req, res) => {
   }
 };
 
-export const voteWithToken = async (req, res) => {
+export const getPollByToken = async (req, res) => {
   const { token } = req.params;
-  const { voterName, optionIndex } = req.body;
 
   try {
-    // Token in der Poll-Collection finden
+    // Find poll that contains this token
     const poll = await PollModel.findOne({
       "voteTokens.token": token,
     });
 
     if (!poll) {
-      return res.status(404).json({ message: "Token not found" });
+      return res.status(404).json({ message: "Invalid vote token" });
     }
 
-    // Spezifischen Token aus dem Array finden
+    // Find the specific token entry
+    const tokenEntry = poll.voteTokens.find((t) => t.token === token);
+
+    if (tokenEntry.used) {
+      return res.status(400).json({
+        message: "Vote token already used",
+        pollId: poll._id,
+      });
+    }
+
+    // Check if poll has expired
+    if (poll.expirationDate && new Date() > new Date(poll.expirationDate)) {
+      poll.expired = true;
+      await poll.save();
+      return res.status(400).json({ message: "Poll has expired" });
+    }
+
+    return res.status(200).json({
+      poll: {
+        id: poll._id,
+        title: poll.title,
+        question: poll.question,
+        type: poll.type,
+        options: poll.options,
+        multipleChoice: poll.multipleChoice,
+        expirationDate: poll.expirationDate,
+        expired: poll.expired,
+        createdAt: poll.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching poll by token:", error);
+    res.status(500).json({ message: "Failed to fetch poll" });
+  }
+};
+
+export const voteWithToken = async (req, res) => {
+  const { token } = req.params;
+  const { voterName, optionIndexes } = req.body;
+
+  try {
+    // Find poll that contains this token
+    const poll = await PollModel.findOne({
+      "voteTokens.token": token,
+    });
+
+    if (!poll) {
+      return res.status(404).json({ message: "Invalid vote token" });
+    }
+
+    // Find the specific token entry
     const tokenEntry = poll.voteTokens.find((t) => t.token === token);
 
     if (!tokenEntry || tokenEntry.used) {
       return res.status(400).json({ message: "Token invalid or already used" });
     }
 
-    const index = parseInt(optionIndex);
-    if (!poll.options[index]) {
-      return res.status(400).json({ message: "Invalid option" });
+    // Check if poll has expired
+    if (poll.expirationDate && new Date() > new Date(poll.expirationDate)) {
+      poll.expired = true;
+      await poll.save();
+      return res.status(400).json({ message: "Poll has expired" });
     }
 
-    // Stimme speichern
-    poll.options[index].voters.push(voterName);
+    // Validate option indexes
+    if (!Array.isArray(optionIndexes) || optionIndexes.length === 0) {
+      return res.status(400).json({ message: "No options selected" });
+    }
 
-    // Token als benutzt markieren
+    // Check if multiple choice is allowed
+    if (!poll.multipleChoice && optionIndexes.length > 1) {
+      return res
+        .status(400)
+        .json({ message: "Multiple choices not allowed for this poll" });
+    }
+
+    // Validate all option indexes
+    for (const index of optionIndexes) {
+      if (index < 0 || index >= poll.options.length) {
+        return res.status(400).json({ message: "Invalid option selected" });
+      }
+    }
+
+    // Add voter name to selected options
+    for (const index of optionIndexes) {
+      poll.options[index].voters.push(voterName);
+    }
+
+    // Mark token as used
     tokenEntry.used = true;
     tokenEntry.usedAt = new Date();
     tokenEntry.voterName = voterName;
 
     await poll.save();
 
-    res.status(200).json({ message: "Vote successful" });
+    res.status(200).json({
+      message: "Vote submitted successfully",
+      pollId: poll._id,
+    });
   } catch (error) {
-    console.error("Error voting:", error);
+    console.error("Error voting with token:", error);
     res.status(500).json({ message: "Voting failed" });
   }
 };

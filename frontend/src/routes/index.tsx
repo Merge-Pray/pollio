@@ -29,11 +29,13 @@ export const router = createBrowserRouter([
       { path: "quickpoll/result/:id", element: <QuickpollResult /> },
       { path: "quickpoll/vote/:id", element: <QuickpollVote /> },
       { path: "publicpoll", element: <Publicpoll /> },
+      { path: "custompoll/vote/:id", element: <TextpollVote /> },
+      { path: "custompoll/result/:id", element: <TextpollResult /> },
       {
         path: "user/:id",
         element: (
           <ProtectedRoute>
-            <Userpage />{" "}
+            <Userpage />
           </ProtectedRoute>
         ),
       },
@@ -41,8 +43,7 @@ export const router = createBrowserRouter([
         path: "user/polls/:id",
         element: (
           <ProtectedRoute>
-            {" "}
-            <ManagePoll />{" "}
+            <ManagePoll />
           </ProtectedRoute>
         ),
       },
@@ -58,7 +59,6 @@ export const router = createBrowserRouter([
         path: "datepoll",
         element: (
           <ProtectedRoute>
-            {" "}
             <Datepoll />
           </ProtectedRoute>
         ),
@@ -67,31 +67,10 @@ export const router = createBrowserRouter([
         path: "imagepoll",
         element: (
           <ProtectedRoute>
-            {" "}
-            <Imagepoll />{" "}
+            <Imagepoll />
           </ProtectedRoute>
         ),
       },
-      {
-        path: "custompoll/vote/:id",
-        element: (
-          <ProtectedRoute>
-            {" "}
-            <TextpollVote />{" "}
-          </ProtectedRoute>
-        ),
-      },
-
-      {
-        path: "custompoll/result/:id",
-        element: (
-          <ProtectedRoute>
-            {" "}
-            <TextpollResult />{" "}
-          </ProtectedRoute>
-        ),
-      },
-
       {
         path: "polloverview",
         element: (

@@ -188,66 +188,105 @@ export const voteWithToken = async (req, res) => {
   const { voterName, optionIndex } = req.body;
 
   try {
-    const tokenEntry = await db.collection("tokens").findOne({ token });
+    // Token in der Poll-Collection finden
+    const poll = await PollModel.findOne({
+      "voteTokens.token": token,
+    });
 
-    if (!tokenEntry || tokenEntry.used) {
-      return res
-        .status(400)
-        .json({ message: "Token ungültig oder bereits verwendet" });
+    if (!poll) {
+      return res.status(404).json({ message: "Token not found" });
     }
 
-    const poll = await db
-      .collection("polls")
-      .findOne({ id: tokenEntry.pollId });
-    if (!poll) {
-      return res.status(404).json({ message: "Umfrage nicht gefunden" });
+    // Spezifischen Token aus dem Array finden
+    const tokenEntry = poll.voteTokens.find((t) => t.token === token);
+
+    if (!tokenEntry || tokenEntry.used) {
+      return res.status(400).json({ message: "Token invalid or already used" });
     }
 
     const index = parseInt(optionIndex);
     if (!poll.options[index]) {
-      return res.status(400).json({ message: "Ungültige Option" });
+      return res.status(400).json({ message: "Invalid option" });
     }
 
     // Stimme speichern
-    poll.options[index].voteCount += 1;
-    poll.options[index].voterNames.push(voterName);
-
-    await db
-      .collection("polls")
-      .updateOne({ id: poll.id }, { $set: { options: poll.options } });
+    poll.options[index].voters.push(voterName);
 
     // Token als benutzt markieren
-    await db
-      .collection("tokens")
-      .updateOne({ token }, { $set: { used: true } });
+    tokenEntry.used = true;
+    tokenEntry.usedAt = new Date();
+    tokenEntry.voterName = voterName;
 
-    res.status(200).json({ message: "Abstimmung erfolgreich" });
+    await poll.save();
+
+    res.status(200).json({ message: "Vote successful" });
   } catch (error) {
-    console.error("Fehler beim Abstimmen:", error);
-    res.status(500).json({ message: "Abstimmung fehlgeschlagen" });
+    console.error("Error voting:", error);
+    res.status(500).json({ message: "Voting failed" });
   }
 };
 
 export const editCustomPoll = async (req, res) => {
   const pollId = req.params.id;
-  const { question, options } = req.body;
+  const { title, question, options, multipleChoice, expirationDate } = req.body;
 
-  const poll = await db.polls.findOne({ id: pollId });
-  if (!poll) return res.status(404).json({ message: "Poll not found" });
+  try {
+    const poll = await PollModel.findById(pollId);
+    if (!poll) {
+      return res.status(404).json({ message: "Poll not found" });
+    }
 
-  await db.polls.updateOne({ id: pollId }, { $set: { question, options } });
+    // Update poll fields
+    if (title !== undefined) poll.title = title;
+    if (question !== undefined) poll.question = question;
+    if (options !== undefined) poll.options = options;
+    if (multipleChoice !== undefined) poll.multipleChoice = multipleChoice;
+    if (expirationDate !== undefined)
+      poll.expirationDate = expirationDate ? new Date(expirationDate) : null;
 
-  res.json({ message: "Poll updated" });
+    await poll.save();
+
+    res.status(200).json({
+      message: "Poll updated successfully",
+      poll: {
+        id: poll._id,
+        title: poll.title,
+        question: poll.question,
+        type: poll.type,
+        options: poll.options,
+        multipleChoice: poll.multipleChoice,
+        expirationDate: poll.expirationDate,
+        expired: poll.expired,
+        createdAt: poll.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error updating poll:", error);
+    res.status(500).json({ message: "Failed to update poll" });
+  }
 };
 
 export const deleteCustomPoll = async (req, res) => {
   const pollId = req.params.id;
 
-  const poll = await db.polls.findOne({ id: pollId });
+  try {
+    const poll = await PollModel.findById(pollId);
 
-  if (!poll) return res.status(404).json({ message: "Poll not found" });
+    if (!poll) {
+      return res.status(404).json({ message: "Poll not found" });
+    }
 
-  await db.polls.deleteOne({ id: pollId });
+    await PollModel.findByIdAndDelete(pollId);
 
-  res.json({ message: "Poll deleted" });
+    // Entferne auch die Referenz aus dem User-Dokument
+    await UserModel.updateMany(
+      { "polls.poll": pollId },
+      { $pull: { polls: { poll: pollId } } }
+    );
+
+    res.status(200).json({ message: "Poll deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting poll:", error);
+    res.status(500).json({ message: "Failed to delete poll" });
+  }
 };

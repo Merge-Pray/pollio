@@ -9,6 +9,7 @@ import {
   createTextPoll,
   createImagePoll,
   getPoll,
+  getPollByToken,
   voteWithToken,
   generateVoteToken,
   editCustomPoll,
@@ -18,25 +19,26 @@ import { authorizeJwt } from "../middleware/auth.js";
 
 export const pollRouter = express.Router();
 
-// Quick
+// Quick polls
 pollRouter.post("/quick", createQuickPoll);
 pollRouter.get("/quick/:id", getQuickPoll);
 pollRouter.post("/quick/:id/vote", voteOnQuickPoll);
 pollRouter.get("/quick", getPublicQuick);
 
-// create text
+// Custom polls - create
 pollRouter.post("/text", authorizeJwt, createTextPoll);
-
-// create image
 pollRouter.post("/image", authorizeJwt, createImagePoll);
 
-// generateTokenLink
-pollRouter.post("/:id/generatetoken", generateVoteToken);
+// Custom polls - voting with tokens
+pollRouter.get("/token/:token", getPollByToken);
 pollRouter.post("/vote/:token", voteWithToken);
 
-// Custom polls
+// Custom polls - token generation (protected)
+pollRouter.post("/:id/generatetoken", authorizeJwt, generateVoteToken);
+
+// Custom polls - management (protected)
 pollRouter.put("/edit/:id", authorizeJwt, editCustomPoll);
 pollRouter.delete("/delete/:id", authorizeJwt, deleteCustomPoll);
 
-// get custom poll
+// Custom polls - get poll data
 pollRouter.get("/custom/:id", getPoll);

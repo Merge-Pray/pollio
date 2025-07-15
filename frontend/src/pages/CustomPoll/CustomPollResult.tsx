@@ -18,6 +18,7 @@ import {
 } from "../../components/ui/carousel";
 import { API_URL } from "@/lib/config";
 import useUserStore from "@/hooks/userstore";
+import { X } from "lucide-react";
 
 interface PollOption {
   text: string;
@@ -45,6 +46,7 @@ const CustomPollResult = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedOption, setExpandedOption] = useState<number | null>(null);
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPoll = async () => {
@@ -206,8 +208,15 @@ const CustomPollResult = () => {
                   <img
                     src={option.imageUrl}
                     alt={option.text || `Option ${index + 1}`}
-                    className="w-full h-48 object-cover rounded-md border-2 border-border"
+                    className="w-full h-48 object-cover rounded-md border-2 border-border cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => setFullscreenImage(option.imageUrl || "")}
                   />
+                  <p
+                    className="text-center text-gray-500 mt-2"
+                    style={{ fontSize: "0.5rem" }}
+                  >
+                    Click to enlarge
+                  </p>
                 </div>
 
                 {/* Results */}
@@ -327,50 +336,66 @@ const CustomPollResult = () => {
   const totalVotes = getTotalVotes();
 
   return (
-    <div className="max-w-5xl mx-auto mt-8 p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">{poll.title}</CardTitle>
-          <CardDescription className="text-lg">
-            {poll.question} • {totalVotes} total votes
-            {poll.type && (
-              <span className="ml-2 text-sm bg-main text-main-foreground px-2 py-1 rounded">
-                {poll.type.toUpperCase()}
-              </span>
-            )}
-          </CardDescription>
-          {poll.expirationDate && (
-            <CardDescription className="text-sm">
-              {poll.expired ? "Expired on" : "Expires on"}{" "}
-              {new Date(poll.expirationDate).toLocaleDateString()}
+    <>
+      <div className="max-w-5xl mx-auto mt-8 p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">{poll.title}</CardTitle>
+            <CardDescription className="text-lg">
+              {poll.question} • {totalVotes} total votes
+              {poll.type && (
+                <span className="ml-2 text-sm bg-main text-main-foreground px-2 py-1 rounded">
+                  {poll.type.toUpperCase()}
+                </span>
+              )}
             </CardDescription>
-          )}
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Poll Results */}
-          {poll.type === "text"
-            ? renderTextPollResults()
-            : renderImagePollResults()}
+            {poll.expirationDate && (
+              <CardDescription className="text-sm">
+                {poll.expired ? "Expired on" : "Expires on"}{" "}
+                {new Date(poll.expirationDate).toLocaleDateString()}
+              </CardDescription>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Poll Results */}
+            {poll.type === "text"
+              ? renderTextPollResults()
+              : renderImagePollResults()}
 
-          {/* Action Buttons */}
-          <div className="space-y-4 pt-8 border-t-2 border-border">
-            {currentUser ? (
-              <>
-                <div className="flex gap-3">
-                  <Button
-                    onClick={() => navigate("/polloverview")}
-                    className="flex-1 h-12 text-lg cursor-pointer"
-                  >
-                    Create New Poll
-                  </Button>
-                  <Button
-                    onClick={() => navigate(`/user/polls/${id}`)}
-                    variant="noShadow"
-                    className="h-12 text-lg px-6 cursor-pointer"
-                  >
-                    Manage Poll
-                  </Button>
-                </div>
+            {/* Action Buttons */}
+            <div className="space-y-4 pt-8 border-t-2 border-border">
+              {currentUser ? (
+                <>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => navigate("/polloverview")}
+                      className="flex-1 h-12 text-lg cursor-pointer"
+                    >
+                      Create New Poll
+                    </Button>
+                    <Button
+                      onClick={() => navigate(`/user/polls/${id}`)}
+                      variant="noShadow"
+                      className="h-12 text-lg px-6 cursor-pointer"
+                    >
+                      Manage Poll
+                    </Button>
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold mb-3">SHARE RESULTS:</p>
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={handleShareResults}
+                        variant="noShadow"
+                        className="flex-1 cursor-pointer h-12 text-lg"
+                        size="sm"
+                      >
+                        COPY RESULTS LINK
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              ) : (
                 <div>
                   <p className="text-lg font-bold mb-3">SHARE RESULTS:</p>
                   <div className="flex gap-3">
@@ -384,34 +409,42 @@ const CustomPollResult = () => {
                     </Button>
                   </div>
                 </div>
-              </>
-            ) : (
-              <div>
-                <p className="text-lg font-bold mb-3">SHARE RESULTS:</p>
-                <div className="flex gap-3">
-                  <Button
-                    onClick={handleShareResults}
-                    variant="noShadow"
-                    className="flex-1 cursor-pointer h-12 text-lg"
-                    size="sm"
-                  >
-                    COPY RESULTS LINK
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Poll Info */}
-          <div className="text-sm text-gray-600 pt-4 border-t border-gray-200">
-            <p>
-              Created on {new Date(poll.createdAt).toLocaleDateString()} •{" "}
-              {poll.multipleChoice ? "Multiple Choice" : "Single Choice"}
-            </p>
+            {/* Poll Info */}
+            <div className="text-sm text-gray-600 pt-4 border-t border-gray-200">
+              <p>
+                Created on {new Date(poll.createdAt).toLocaleDateString()} •{" "}
+                {poll.multipleChoice ? "Multiple Choice" : "Single Choice"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Fullscreen Image Modal */}
+      {fullscreenImage && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+          <div className="relative pointer-events-auto">
+            <img
+              src={fullscreenImage}
+              alt="Fullscreen view"
+              className="max-h-[80vh] object-contain shadow-2xl border-2 border-white"
+              onClick={() => setFullscreenImage(null)}
+            />
+            <Button
+              onClick={() => setFullscreenImage(null)}
+              variant="noShadow"
+              size="icon"
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-lg"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      )}
+    </>
   );
 };
 

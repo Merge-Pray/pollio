@@ -39,6 +39,7 @@ interface Poll {
   expirationDate?: string;
   expired: boolean;
   createdAt: string;
+  voteTokens?: any[];
 }
 
 interface UploadedImage {

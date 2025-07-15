@@ -36,7 +36,7 @@ const PollSchema = new Schema({
 
   voteTokens: [
     {
-      token: { type: String, required: true, unique: true },
+      token: { type: String, required: true },
       used: { type: Boolean, default: false },
       createdAt: { type: Date, default: Date.now },
       expiresAt: { type: Date },

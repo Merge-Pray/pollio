@@ -752,24 +752,30 @@ const ManagePoll = () => {
         <CardHeader>
           <CardTitle className="text-2xl">
             {isEditing ? (
-              <Input
-                value={editedTitle}
-                onChange={(e) => setEditedTitle(e.target.value)}
-                placeholder="Poll Title"
-                className="text-xl"
-              />
+              <>
+                <Label>Poll Title:</Label>
+                <Input
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                  placeholder="Poll Title"
+                  className="text-xl"
+                />
+              </>
             ) : (
               poll.title
             )}
           </CardTitle>
           <CardDescription>
             {isEditing ? (
-              <Textarea
-                value={editedQuestion}
-                onChange={(e) => setEditedQuestion(e.target.value)}
-                placeholder="Poll Question"
-                className="mt-2"
-              />
+              <>
+                <Label>Poll Question:</Label>
+                <Textarea
+                  value={editedQuestion}
+                  onChange={(e) => setEditedQuestion(e.target.value)}
+                  placeholder="Poll Question"
+                  className="mt-2"
+                />
+              </>
             ) : (
               poll.question
             )}

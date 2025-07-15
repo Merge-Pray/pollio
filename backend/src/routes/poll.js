@@ -9,6 +9,10 @@ import {
   createTextPoll,
   createImagePoll,
   getPoll,
+  voteWithToken,
+  generateVoteToken,
+  editCustomPoll,
+  deleteCustomPoll,
 } from "../controllers/poll.js";
 import { authorizeJwt } from "../middleware/auth.js";
 
@@ -25,6 +29,14 @@ pollRouter.post("/text", authorizeJwt, createTextPoll);
 
 // create image
 pollRouter.post("/image", authorizeJwt, createImagePoll);
+
+// generateTokenLink
+pollRouter.post("/:id/generatetoken", generateVoteToken);
+pollRouter.post("/vote/:token", voteWithToken);
+
+// Custom polls
+pollRouter.put("/edit/:id", authorizeJwt, editCustomPoll);
+pollRouter.delete("/delete/:id", authorizeJwt, deleteCustomPoll);
 
 // get custom poll
 pollRouter.get("/custom/:id", getPoll);

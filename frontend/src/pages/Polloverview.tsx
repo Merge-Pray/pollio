@@ -10,7 +10,7 @@ import { NavLink } from "react-router";
 const Polloverview = () => {
   return (
     <div className="max-w-5xl mx-auto mt-8 p-6">
-      <div className="flex flex-wrap gap-6">
+      <div className="flex flex-wrap justify-center gap-6">
         <NavLink to="/textpoll">
           <Card className="flex-1 min-w-[300px]">
             <CardHeader>

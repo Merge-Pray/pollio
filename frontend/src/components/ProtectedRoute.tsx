@@ -1,13 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router";
 import useUserStore from "@/hooks/userstore";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
+import { Card, CardDescription } from "./ui/card";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { currentUser } = useUserStore();

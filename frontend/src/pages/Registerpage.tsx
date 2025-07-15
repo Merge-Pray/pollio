@@ -1,3 +1,12 @@
+import { useState } from "react";
+import { useNavigate } from "react-router";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { GoogleLogin } from "@react-oauth/google";
+
+import useUserStore from "@/hooks/userstore.js";
+import { API_URL } from "@/lib/config.js";
 import { Button } from "../components/ui/button.js";
 import {
   Form,
@@ -7,52 +16,19 @@ import {
   FormLabel,
   FormMessage,
 } from "../components/ui/form.js";
-
 import { Input } from "../components/ui/input.js";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { useNavigate } from "react-router";
-import { useState } from "react";
-import { API_URL } from "@/lib/config.js";
 
-const Registerpage = () => {
-  const [isLoading, setIsLoading] = useState(false);
+const RegisterPage = () => {
+  const setCurrentUser = useUserStore((state) => state.setCurrentUser);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const formSchema = z
-    .object({
-      username: z
-        .string()
-        .min(1, { message: "Username is required." })
-        .min(3, { message: "Username must be at least 3 characters long." })
-        .regex(/^[^@]*$/, { message: "Username cannot contain @ symbol." }),
-
-      email: z.string().email({ message: "Invalid email format." }),
-
-      password: z
-        .string()
-        .min(10, { message: "Password must be at least 10 characters long." })
-        .regex(/[A-Z]/, {
-          message: "Password must contain at least one uppercase letter (A-Z).",
-        })
-        .regex(/[a-z]/, {
-          message: "Password must contain at least one lowercase letter (a-z).",
-        })
-        .regex(/[!@#$%^&*(),.?":{}|<>]/, {
-          message:
-            'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>).',
-        }),
-
-      confirmPassword: z
-        .string()
-        .min(1, { message: "Confirm Password is required." }),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-      message: "Passwords don't match",
-      path: ["confirmPassword"],
-    });
+  const formSchema = z.object({
+    username: z.string().min(1, { message: "Username is required." }),
+    email: z.string().email({ message: "Invalid email address." }),
+    password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -60,7 +36,6 @@ const Registerpage = () => {
       username: "",
       email: "",
       password: "",
-      confirmPassword: "",
     },
   });
 
@@ -75,11 +50,7 @@ const Registerpage = () => {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({
-          username: values.username,
-          email: values.email,
-          password: values.password,
-        }),
+        body: JSON.stringify(values),
       });
 
       if (!response.ok) {
@@ -88,15 +59,41 @@ const Registerpage = () => {
       }
 
       const data = await response.json();
-      console.log("Registration successful:", data);
-      navigate("/");
-    } catch (error) {
-      console.error("Registration error:", error);
-      setError(error instanceof Error ? error.message : "Registration failed");
+      setCurrentUser(data.user);
+      navigate("/polloverview");
+    } catch (err) {
+      console.error("Registration error:", err);
+      setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
       setIsLoading(false);
     }
   }
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    const credential = credentialResponse?.credential;
+    if (!credential) {
+      setError("❌ Kein Google Token erhalten");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/user/google-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ credential }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      setCurrentUser(data.user);
+      navigate("/polloverview");
+    } catch (err) {
+      console.error("Google Login Fehler:", err);
+      setError(err instanceof Error ? err.message : "Google Login fehlgeschlagen");
+    }
+  };
 
   return (
     <div className="max-w-md mx-auto mt-8 p-6">
@@ -117,12 +114,13 @@ const Registerpage = () => {
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your username" {...field} />
+                  <Input placeholder="Choose a username" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="email"
@@ -130,12 +128,13 @@ const Registerpage = () => {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your email" {...field} />
+                  <Input type="email" placeholder="Enter your email" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="password"
@@ -143,50 +142,36 @@ const Registerpage = () => {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="Enter your password"
-                    {...field}
-                  />
+                  <Input type="password" placeholder="Enter your password" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="confirmPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="Confirm your password"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "Registering..." : "Register"}
           </Button>
         </form>
       </Form>
 
-      <div className="mt-4 text-center">
+      <div className="mt-6 text-center space-y-4">
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => setError("❌ Google Login fehlgeschlagen")}
+          useOneTap
+        />
+
         <Button
           variant="noShadow"
           onClick={() => navigate("/login")}
-          className="text-xs bg-white h-3 cursor-pointer"
+          className="text-xs mt-2 h-6 cursor-pointer"
         >
-          Already registered? Login
+          Already have an account? Login
         </Button>
       </div>
     </div>
   );
 };
 
-export default Registerpage;
+export default RegisterPage;

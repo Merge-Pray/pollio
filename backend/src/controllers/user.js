@@ -2,6 +2,8 @@ import { generateToken } from "../libs/jwt.js";
 import { hashPassword, comparePassword } from "../libs/pw.js";
 import UserModel from "../models/user.js";
 import PollModel from "../models/poll.js";
+import { OAuth2Client } from "google-auth-library";
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const createUser = async (req, res, next) => {
   try {
@@ -194,5 +196,62 @@ export const getUserPolls = async (req, res, next) => {
   } catch (error) {
     console.error("Error fetching user polls:", error);
     return next(error);
+  }
+};
+
+export const googleLogin = async (req, res, next) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ message: "No Google credential provided" });
+    }
+
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, picture, sub } = payload;
+
+    let user = await UserModel.findOne({ email });
+
+    // Falls Nutzer noch nicht existiert: anlegen
+    if (!user) {
+      user = new UserModel({
+        email,
+        authProvider: "google",
+        name,
+        avatar: picture,
+        username: email.split("@")[0], // oder anderer Fallback
+        hashedPassword: null,
+      });
+
+      await user.save();
+    }
+
+    // JWT generieren
+    const token = generateToken(user.username, user._id);
+
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      message: "Google login successful",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar,
+      },
+    });
+  } catch (error) {
+    console.error("Google Login Error:", error);
+    return res.status(401).json({ message: "Google login failed" });
   }
 };

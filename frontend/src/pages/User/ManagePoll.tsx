@@ -752,9 +752,6 @@ const ManagePoll = () => {
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-medium">
-                          Token {index + 1}
-                        </span>
                         <span
                           className={`text-xs px-2 py-1 rounded ${
                             tokenData.used

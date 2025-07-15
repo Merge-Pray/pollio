@@ -1,3 +1,4 @@
+import { useGoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router";
 import { Button } from "../components/ui/button.js";
 import {
@@ -74,6 +75,36 @@ const Loginpage = () => {
     }
   }
 
+const login = useGoogleLogin({
+  onSuccess: async (tokenResponse) => {
+    const token = tokenResponse.credential || tokenResponse.access_token;
+
+    try {
+      const response = await fetch(`${API_URL}/api/user/google-login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ token }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message);
+
+      setCurrentUser(data.user);
+      navigate("/polloverview");
+    } catch (err) {
+      console.error("Google Login Fehler:", err);
+      setError(err.message);
+    }
+  },
+  onError: () => {
+    setError("❌ Google Login fehlgeschlagen");
+  },
+  flow: "implicit", // optional, kann auch "auth-code" sein
+});
+
   return (
     <div className="max-w-md mx-auto mt-8 p-6">
       <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
@@ -125,15 +156,23 @@ const Loginpage = () => {
         </form>
       </Form>
 
-      <div className="mt-4 text-center">
+      <div className="mt-4  text-center">
+                <Button onClick={() => login()} className="w-full mt-1">
+  Mit Google anmelden
+</Button>
+
         <Button
           variant="noShadow"
           onClick={() => navigate("/register")}
-          className="text-xs h-6 cursor-pointer"
+          className="text-xs mt-4 h-6 cursor-pointer"
+          
         >
+          
           Don't have an account? Register
         </Button>
+
       </div>
+
     </div>
   );
 };

@@ -22,7 +22,7 @@ export const createUser = async (req, res, next) => {
     res.cookie("jwt", token, {
       httpOnly: true,
       secure: true,
-      sameSite: "lax",
+      sameSite: "none",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -75,7 +75,7 @@ export const verifyLogin = async (req, res, next) => {
     res.cookie("jwt", token, {
       httpOnly: true,
       secure: true,
-      sameSite: "lax",
+      sameSite: "none",
       maxAge: 24 * 60 * 60 * 1000,
     });
 

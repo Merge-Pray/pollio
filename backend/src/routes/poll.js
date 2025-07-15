@@ -14,6 +14,7 @@ import {
   generateVoteToken,
   editCustomPoll,
   deleteCustomPoll,
+  resetPoll,
 } from "../controllers/poll.js";
 import { authorizeJwt } from "../middleware/auth.js";
 
@@ -39,6 +40,7 @@ pollRouter.post("/:id/generatetoken", authorizeJwt, generateVoteToken);
 // Custom polls - management (protected)
 pollRouter.put("/edit/:id", authorizeJwt, editCustomPoll);
 pollRouter.delete("/delete/:id", authorizeJwt, deleteCustomPoll);
+pollRouter.post("/reset/:id", authorizeJwt, resetPoll);
 
 // Custom polls - get poll data
 pollRouter.get("/custom/:id", getPoll);

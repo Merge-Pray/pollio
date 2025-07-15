@@ -115,6 +115,14 @@ const ManagePoll = () => {
   // Get today's date for minimum date validation
   const today = new Date().toISOString().split("T")[0];
 
+  // Helper function to check if poll is expired
+  const isPollExpired = (poll: Poll) => {
+    if (poll.expired) return true;
+    if (poll.expirationDate && new Date() > new Date(poll.expirationDate))
+      return true;
+    return false;
+  };
+
   useEffect(() => {
     const fetchPoll = async () => {
       if (!id) {
@@ -288,6 +296,81 @@ const ManagePoll = () => {
     );
   };
 
+  const handleEndPoll = async () => {
+    if (!poll) return;
+
+    const confirmEnd = window.confirm(
+      "Are you sure you want to end this poll? This will immediately stop all voting."
+    );
+    if (!confirmEnd) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/poll/edit/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          ...poll,
+          expired: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to end poll");
+      }
+
+      const updatedData = await response.json();
+      setPoll(updatedData.poll);
+      setError(null);
+    } catch (error) {
+      console.error("Error ending poll:", error);
+      setError(error instanceof Error ? error.message : "Failed to end poll");
+    }
+  };
+
+  const handleResetPoll = async () => {
+    if (!poll) return;
+
+    const confirmReset = window.confirm(
+      "⚠️ WARNING: This will reset ALL votes and make all voting links usable again.\n\n" +
+        "Are you sure you want to reset this poll? This action cannot be undone.\n\n" +
+        "• All votes will be deleted\n" +
+        "• All voting tokens will be reactivated\n" +
+        "• Voters can vote again using their original links"
+    );
+    if (!confirmReset) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/poll/reset/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to reset poll");
+      }
+
+      const updatedData = await response.json();
+      setPoll(updatedData.poll);
+      setShareTokens(updatedData.poll.voteTokens || []);
+      setError(null);
+
+      alert(
+        "Poll has been reset successfully! All votes cleared and voting links reactivated."
+      );
+    } catch (error) {
+      console.error("Error resetting poll:", error);
+      setError(error instanceof Error ? error.message : "Failed to reset poll");
+    }
+  };
+
   const handleSaveChanges = async () => {
     if (!poll || !editedTitle.trim() || !editedQuestion.trim()) {
       setError("Title and question are required");
@@ -297,11 +380,21 @@ const ManagePoll = () => {
     try {
       // Handle expiration date and time combination
       let expirationDate = null;
+      let expired = false;
+
       if (editedExpirationDate) {
         const dateTime = `${editedExpirationDate}T${
           editedExpirationTime || "23:59"
         }:00`;
         expirationDate = new Date(dateTime).toISOString();
+
+        // If setting a new expiration date in the future, set expired to false
+        if (new Date(expirationDate) > new Date()) {
+          expired = false;
+        }
+      } else {
+        // If no expiration date is set, keep current expired status
+        expired = poll.expired;
       }
 
       const response = await fetch(`${API_URL}/api/poll/edit/${id}`, {
@@ -318,6 +411,7 @@ const ManagePoll = () => {
           ),
           multipleChoice: editedMultipleChoice,
           expirationDate: expirationDate,
+          expired: expired,
         }),
       });
 
@@ -759,7 +853,14 @@ const ManagePoll = () => {
                 className="text-xl"
               />
             ) : (
-              poll.title
+              <div className="flex items-center gap-3">
+                {poll.title}
+                {isPollExpired(poll) && (
+                  <span className="text-sm bg-red-100 text-red-800 px-2 py-1 rounded">
+                    EXPIRED
+                  </span>
+                )}
+              </div>
             )}
           </CardTitle>
           <CardDescription>
@@ -805,28 +906,44 @@ const ManagePoll = () => {
               )}
             </div>
             <div>
-              <Label>Expiration:</Label>
+              <Label>Status:</Label>
               {isEditing ? (
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    type="date"
-                    value={editedExpirationDate}
-                    onChange={(e) => setEditedExpirationDate(e.target.value)}
-                    min={today}
-                    placeholder="Date"
-                  />
-                  <Input
-                    type="time"
-                    value={editedExpirationTime}
-                    onChange={(e) => setEditedExpirationTime(e.target.value)}
-                    placeholder="Time"
-                  />
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      type="date"
+                      value={editedExpirationDate}
+                      onChange={(e) => setEditedExpirationDate(e.target.value)}
+                      min={today}
+                      placeholder="Date"
+                    />
+                    <Input
+                      type="time"
+                      value={editedExpirationTime}
+                      onChange={(e) => setEditedExpirationTime(e.target.value)}
+                      placeholder="Time"
+                    />
+                  </div>
+                  {isPollExpired(poll) && (
+                    <div className="text-sm bg-orange-50 text-orange-700 p-2 rounded border border-orange-200">
+                      <strong>Poll is currently expired.</strong> Set a future
+                      expiration date to reactivate voting, or leave empty for
+                      no expiration.
+                    </div>
+                  )}
+                </div>
+              ) : isPollExpired(poll) ? (
+                <p className="font-medium text-red-600">Expired</p>
+              ) : poll.expirationDate ? (
+                <div>
+                  <p className="font-medium text-green-600">Active</p>
+                  <p className="text-xs text-gray-500">
+                    Expires: {formatExpirationDateTime(poll.expirationDate)}
+                  </p>
                 </div>
               ) : (
-                <p className="font-medium">
-                  {poll.expirationDate
-                    ? formatExpirationDateTime(poll.expirationDate)
-                    : "No expiration"}
+                <p className="font-medium text-green-600">
+                  Active (No expiration)
                 </p>
               )}
             </div>
@@ -852,9 +969,30 @@ const ManagePoll = () => {
                 Save Changes
               </Button>
             )}
+
+            <Button
+              onClick={handleEndPoll}
+              variant="neutral"
+              disabled={isPollExpired(poll)}
+              className={
+                isPollExpired(poll) ? "opacity-50 cursor-not-allowed" : ""
+              }
+            >
+              End Poll
+            </Button>
+
+            <Button
+              onClick={handleResetPoll}
+              variant="neutral"
+              className="bg-orange-100 hover:bg-orange-200 text-orange-800 border-orange-300"
+            >
+              Reset Poll
+            </Button>
+
             <Button onClick={handleDeletePoll} variant="neutral">
               Delete Poll
             </Button>
+
             <Button
               onClick={() => navigate(`/custompoll/result/${id}`)}
               variant="neutral"

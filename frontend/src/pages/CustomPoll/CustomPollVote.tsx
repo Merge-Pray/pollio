@@ -43,6 +43,7 @@ const CustomPollVote = () => {
   const [isVoting, setIsVoting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tokenUsed, setTokenUsed] = useState(false);
+  const [pollExpired, setPollExpired] = useState(false);
 
   useEffect(() => {
     const fetchPollByToken = async () => {
@@ -60,25 +61,57 @@ const CustomPollVote = () => {
           if (response.status === 404) {
             throw new Error("Invalid vote token");
           } else if (response.status === 400) {
-            // Token already used
+            // Token already used or poll expired
             const errorData = await response.json();
-            setTokenUsed(true);
-            setError(errorData.message);
 
-            // Redirect to results after 3 seconds
-            setTimeout(() => {
-              // We need to get the poll ID for redirect - we'll handle this in the backend response
-              if (errorData.pollId) {
-                navigate(`/custompoll/result/${errorData.pollId}`);
-              }
-            }, 3000);
-            return;
+            if (errorData.message.includes("expired")) {
+              setPollExpired(true);
+              setError("Voting has ended, poll is expired.");
+              setPollId(errorData.pollId || "");
+
+              // Redirect to results after 3 seconds
+              setTimeout(() => {
+                if (errorData.pollId) {
+                  navigate(`/custompoll/result/${errorData.pollId}`);
+                }
+              }, 3000);
+              return;
+            } else {
+              // Token already used
+              setTokenUsed(true);
+              setError(errorData.message);
+
+              // Redirect to results after 3 seconds
+              setTimeout(() => {
+                if (errorData.pollId) {
+                  navigate(`/custompoll/result/${errorData.pollId}`);
+                }
+              }, 3000);
+              return;
+            }
           }
           const errorData = await response.json();
           throw new Error(errorData.message || "Failed to fetch poll");
         }
 
         const data = await response.json();
+
+        // ✅ Check if poll is expired on frontend
+        if (
+          data.poll.expirationDate &&
+          new Date() > new Date(data.poll.expirationDate)
+        ) {
+          setPollExpired(true);
+          setError("Voting has ended, poll is expired.");
+          setPollId(data.poll.id);
+
+          // Redirect to results after 3 seconds
+          setTimeout(() => {
+            navigate(`/custompoll/result/${data.poll.id}`);
+          }, 3000);
+          return;
+        }
+
         setPoll(data.poll);
         setPollId(data.poll.id);
       } catch (error) {
@@ -302,6 +335,26 @@ const CustomPollVote = () => {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-lg">Loading poll...</div>
+      </div>
+    );
+  }
+
+  if (pollExpired) {
+    return (
+      <div className="max-w-md mx-auto mt-8 p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-orange-600">Voting Has Ended</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 mb-4">
+              Voting has ended, poll is expired.
+            </p>
+            <p className="text-sm text-gray-500">
+              Redirecting to results in 3 seconds...
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }

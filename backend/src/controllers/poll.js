@@ -207,11 +207,22 @@ export const getPollByToken = async (req, res) => {
       });
     }
 
-    // Check if poll has expired
-    if (poll.expirationDate && new Date() > new Date(poll.expirationDate)) {
-      poll.expired = true;
-      await poll.save();
-      return res.status(400).json({ message: "Poll has expired" });
+    // Check if poll has expired (either by date OR manually set)
+    const isExpiredByDate =
+      poll.expirationDate && new Date() > new Date(poll.expirationDate);
+    const isManuallyExpired = poll.expired === true;
+
+    if (isExpiredByDate || isManuallyExpired) {
+      // If expired by date but not marked as expired, update it
+      if (isExpiredByDate && !poll.expired) {
+        poll.expired = true;
+        await poll.save();
+      }
+
+      return res.status(400).json({
+        message: "Poll has expired",
+        pollId: poll._id,
+      });
     }
 
     return res.status(200).json({
@@ -251,14 +262,28 @@ export const voteWithToken = async (req, res) => {
     const tokenEntry = poll.voteTokens.find((t) => t.token === token);
 
     if (!tokenEntry || tokenEntry.used) {
-      return res.status(400).json({ message: "Token invalid or already used" });
+      return res.status(400).json({
+        message: "Token invalid or already used",
+        pollId: poll._id,
+      });
     }
 
-    // Check if poll has expired
-    if (poll.expirationDate && new Date() > new Date(poll.expirationDate)) {
-      poll.expired = true;
-      await poll.save();
-      return res.status(400).json({ message: "Poll has expired" });
+    // Check if poll has expired (either by date OR manually set)
+    const isExpiredByDate =
+      poll.expirationDate && new Date() > new Date(poll.expirationDate);
+    const isManuallyExpired = poll.expired === true;
+
+    if (isExpiredByDate || isManuallyExpired) {
+      // If expired by date but not marked as expired, update it
+      if (isExpiredByDate && !poll.expired) {
+        poll.expired = true;
+        await poll.save();
+      }
+
+      return res.status(400).json({
+        message: "Poll has expired",
+        pollId: poll._id,
+      });
     }
 
     // Validate option indexes
@@ -304,7 +329,8 @@ export const voteWithToken = async (req, res) => {
 
 export const editCustomPoll = async (req, res) => {
   const pollId = req.params.id;
-  const { title, question, options, multipleChoice, expirationDate } = req.body;
+  const { title, question, options, multipleChoice, expirationDate, expired } =
+    req.body;
 
   try {
     const poll = await PollModel.findById(pollId);
@@ -319,6 +345,7 @@ export const editCustomPoll = async (req, res) => {
     if (multipleChoice !== undefined) poll.multipleChoice = multipleChoice;
     if (expirationDate !== undefined)
       poll.expirationDate = expirationDate ? new Date(expirationDate) : null;
+    if (expired !== undefined) poll.expired = expired;
 
     await poll.save();
 
@@ -339,6 +366,53 @@ export const editCustomPoll = async (req, res) => {
   } catch (error) {
     console.error("Error updating poll:", error);
     res.status(500).json({ message: "Failed to update poll" });
+  }
+};
+
+export const resetPoll = async (req, res) => {
+  const pollId = req.params.id;
+
+  try {
+    const poll = await PollModel.findById(pollId);
+    if (!poll) {
+      return res.status(404).json({ message: "Poll not found" });
+    }
+
+    // Reset all votes in options
+    poll.options.forEach((option) => {
+      option.voters = [];
+      option.yes = [];
+      option.no = [];
+      option.maybe = [];
+    });
+
+    // Reset all vote tokens
+    poll.voteTokens.forEach((tokenEntry) => {
+      tokenEntry.used = false;
+      tokenEntry.usedAt = undefined;
+      tokenEntry.voterName = undefined;
+    });
+
+    await poll.save();
+
+    res.status(200).json({
+      message: "Poll reset successfully",
+      poll: {
+        id: poll._id,
+        title: poll.title,
+        question: poll.question,
+        type: poll.type,
+        options: poll.options,
+        multipleChoice: poll.multipleChoice,
+        expirationDate: poll.expirationDate,
+        expired: poll.expired,
+        createdAt: poll.createdAt,
+        voteTokens: poll.voteTokens,
+      },
+    });
+  } catch (error) {
+    console.error("Error resetting poll:", error);
+    res.status(500).json({ message: "Failed to reset poll" });
   }
 };
 

@@ -39,6 +39,7 @@ interface Poll {
   expirationDate?: string;
   expired: boolean;
   createdAt: string;
+  voteTokens?: any[];
 }
 
 interface UploadedImage {
@@ -845,6 +846,7 @@ const ManagePoll = () => {
             <Button onClick={handleToggleEdit} variant="neutral">
               {isEditing ? "Cancel" : "Edit"}
             </Button>
+
             {isEditing && (
               <Button onClick={handleSaveChanges} variant="neutral">
                 Save Changes
@@ -852,6 +854,12 @@ const ManagePoll = () => {
             )}
             <Button onClick={handleDeletePoll} variant="neutral">
               Delete Poll
+            </Button>
+            <Button
+              onClick={() => navigate(`/custompoll/result/${id}`)}
+              variant="neutral"
+            >
+              View Results
             </Button>
           </div>
         </CardContent>

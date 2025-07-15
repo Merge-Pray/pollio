@@ -12,10 +12,10 @@ import Imagepoll from "../pages/CustomPoll/Imagepoll";
 import Textpoll from "../pages/CustomPoll/Textpoll";
 import QuickpollResult from "../pages/Quickpoll/QuickpollResult";
 import QuickpollVote from "../pages/Quickpoll/QuickpollVote";
-import TextpollResult from "../pages/CustomPoll/CustomPollResult";
 import TextpollVote from "../pages/CustomPoll/CustomPollVote";
 import Polloverview from "@/pages/Polloverview";
 import ProtectedRoute from "../components/ProtectedRoute";
+import CustomPollResult from "../pages/CustomPoll/CustomPollResult";
 
 export const router = createBrowserRouter([
   {
@@ -30,7 +30,7 @@ export const router = createBrowserRouter([
       { path: "quickpoll/vote/:id", element: <QuickpollVote /> },
       { path: "publicpoll", element: <Publicpoll /> },
       { path: "custompoll/vote/:id", element: <TextpollVote /> },
-      { path: "custompoll/result/:id", element: <TextpollResult /> },
+      { path: "custompoll/result/:id", element: <CustomPollResult /> },
       {
         path: "user/:id",
         element: (

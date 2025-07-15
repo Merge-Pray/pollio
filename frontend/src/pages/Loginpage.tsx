@@ -105,7 +105,10 @@ const Loginpage = () => {
               <FormItem>
                 <FormLabel>Email or Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter your email or username" {...field} />
+                  <Input
+                    placeholder="Enter your email or username"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -134,7 +137,7 @@ const Loginpage = () => {
         </form>
       </Form>
 
-      <div className="mt-6 text-center space-y-4">
+      <div className="max-w-md mt-6 text-center space-y-4">
         <GoogleLogin
           onSuccess={handleGoogleSuccess}
           onError={() => setError("❌ Google Login fehlgeschlagen")}

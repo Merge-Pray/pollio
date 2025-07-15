@@ -34,7 +34,6 @@ import useUserStore from "@/hooks/userstore";
 import { X, Upload, Image as ImageIcon } from "lucide-react";
 import type { CarouselApi } from "@/components/ui/carousel";
 
-// Cloudinary upload function
 const uploadToCloudinary = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append("file", file);
@@ -116,7 +115,6 @@ function Imagepoll() {
 
   const watchedHasEndDate = form.watch("hasEndDate");
 
-  // Update form when images change
   useEffect(() => {
     const imageData = uploadedImages.map((img) => ({
       url: img.url,
@@ -125,7 +123,6 @@ function Imagepoll() {
     form.setValue("images", imageData);
   }, [uploadedImages, form]);
 
-  // Reset current index if it's out of bounds
   useEffect(() => {
     if (
       currentImageIndex >= uploadedImages.length &&
@@ -135,7 +132,6 @@ function Imagepoll() {
     }
   }, [uploadedImages.length, currentImageIndex]);
 
-  // Setup carousel API event listeners
   useEffect(() => {
     if (!carouselApi) {
       return;
@@ -168,12 +164,10 @@ function Imagepoll() {
 
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
-        // Validate file type
         if (!file.type.startsWith("image/")) {
           throw new Error(`${file.name} is not an image file`);
         }
 
-        // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
           throw new Error(`${file.name} is too large. Maximum size is 5MB`);
         }
@@ -199,7 +193,6 @@ function Imagepoll() {
 
   const removeImage = (index: number) => {
     setUploadedImages((prev) => prev.filter((_, i) => i !== index));
-    // Adjust current index if necessary
     if (index === currentImageIndex && uploadedImages.length > 1) {
       if (currentImageIndex === uploadedImages.length - 1) {
         setCurrentImageIndex(currentImageIndex - 1);
@@ -228,14 +221,12 @@ function Imagepoll() {
     setError(null);
 
     try {
-      // Prepare expiration date if set
       let expirationDate = null;
       if (values.hasEndDate && values.endDate) {
         const dateTime = `${values.endDate}T${values.endTime || "23:59"}:00`;
         expirationDate = new Date(dateTime).toISOString();
       }
 
-      // Prepare options with image URLs and text
       const options = uploadedImages.map((img) => ({
         imageUrl: img.url,
         text: img.text || "",
@@ -265,7 +256,6 @@ function Imagepoll() {
       const data = await response.json();
       console.log("Image poll created successfully:", data);
 
-      // Navigate to poll management page
       navigate(`/user/polls/${data.poll.id}`);
     } catch (error) {
       console.error("Poll creation error:", error);
@@ -300,7 +290,6 @@ function Imagepoll() {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              {/* Title Field */}
               <FormField
                 control={form.control}
                 name="title"
@@ -324,7 +313,6 @@ function Imagepoll() {
                 )}
               />
 
-              {/* Question Field */}
               <FormField
                 control={form.control}
                 name="question"
@@ -348,7 +336,6 @@ function Imagepoll() {
                 )}
               />
 
-              {/* Image Upload Section */}
               <div className="space-y-4">
                 <FormLabel className="text-lg font-medium">
                   Poll Images
@@ -358,7 +345,6 @@ function Imagepoll() {
                   each)
                 </FormDescription>
 
-                {/* Upload Button */}
                 <div className="flex items-center gap-4">
                   <Button
                     type="button"
@@ -384,7 +370,6 @@ function Imagepoll() {
                   className="hidden"
                 />
 
-                {/* Image Preview Carousel */}
                 {uploadedImages.length > 0 && (
                   <div className="w-full flex-col items-center gap-4 flex">
                     <Carousel
@@ -421,7 +406,6 @@ function Imagepoll() {
                       <CarouselNext />
                     </Carousel>
 
-                    {/* Description input for currently displayed image */}
                     <div className="w-full max-w-[400px] space-y-2">
                       <FormLabel className="text-sm font-medium">
                         Description for Image {currentImageIndex + 1}
@@ -453,11 +437,9 @@ function Imagepoll() {
                 )}
               </div>
 
-              {/* Advanced Settings */}
               <div className="space-y-6 border-t pt-6">
                 <h3 className="text-lg font-semibold">Advanced Settings</h3>
 
-                {/* Multiple Choice */}
                 <FormField
                   control={form.control}
                   name="multipleChoice"
@@ -481,7 +463,6 @@ function Imagepoll() {
                   )}
                 />
 
-                {/* End Date Toggle */}
                 <FormField
                   control={form.control}
                   name="hasEndDate"
@@ -506,7 +487,6 @@ function Imagepoll() {
                   )}
                 />
 
-                {/* End Date & Time Fields */}
                 {watchedHasEndDate && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-4">
                     <FormField
@@ -545,7 +525,6 @@ function Imagepoll() {
                 )}
               </div>
 
-              {/* Submit Button */}
               <div className="flex gap-4 pt-6">
                 <Button
                   type="submit"

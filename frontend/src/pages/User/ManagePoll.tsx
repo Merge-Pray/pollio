@@ -628,6 +628,12 @@ const ManagePoll = () => {
   };
 
   const renderShareLinks = () => {
+    // Sort tokens by creation date (newest first)
+    const sortedTokens = [...shareTokens].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-4">
@@ -649,12 +655,12 @@ const ManagePoll = () => {
           </Button>
         </div>
 
-        {shareTokens.length > 0 && (
+        {sortedTokens.length > 0 && (
           <div className="space-y-3">
             <Label className="text-lg font-semibold">Share Links:</Label>
             <div className="max-h-60 overflow-y-auto space-y-2">
-              {shareTokens.map((tokenData, index) => (
-                <Card key={index} className="p-3">
+              {sortedTokens.map((tokenData, index) => (
+                <Card key={tokenData.token || index} className="p-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">

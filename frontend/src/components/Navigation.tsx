@@ -35,8 +35,8 @@ export default function Navigation() {
       <NavigationMenuList>
         {currentUser ? (
           <>
-            <NavigationMenuItem className="sm:block hidden">
-              <NavigationMenuTrigger>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger className="cursor-pointer">
                 {currentUser.username}
               </NavigationMenuTrigger>
               <NavigationMenuContent>
@@ -47,14 +47,22 @@ export default function Navigation() {
                     title="Your Polls"
                   />
 
-                  <ListItem href="/polloverview" title="Add Personal Poll" />
+                  <ListItem href="/polloverview" title="Add Custom Poll" />
                 </ul>
               </NavigationMenuContent>
             </NavigationMenuItem>
-
-            <NavigationMenuItem className="sm:block hidden">
+            <NavigationMenuItem>
               <NavigationMenuLink
-                className={navigationMenuTriggerStyle()}
+                href="/polloverview"
+                className="text-sm cursor-pointer"
+              >
+                Custom Poll
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavigationMenuLink
+                className={`${navigationMenuTriggerStyle()} cursor-pointer`}
                 onClick={handleLogout}
               >
                 Logout
@@ -62,11 +70,18 @@ export default function Navigation() {
             </NavigationMenuItem>
           </>
         ) : (
-          <NavigationMenuItem>
-            <NavigationMenuLink href="/login" className="text-sm">
-              Login
-            </NavigationMenuLink>
-          </NavigationMenuItem>
+          <>
+            <NavigationMenuItem>
+              <NavigationMenuLink href="/login" className="text-sm">
+                Login
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink href="/polloverview" className="text-sm">
+                Custom Poll
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+          </>
         )}
       </NavigationMenuList>
     </NavigationMenu>

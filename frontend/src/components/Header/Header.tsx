@@ -35,7 +35,7 @@ const Header = () => {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center mt-6">
+    <div className="flex flex-col justify-between items-center mt-6">
       <div className="flex flex-row gap-4 justify-between items-center sm:py-2 sm:px-16 mb-4 w-full">
         <div className="flex items-center">
           <NavLink to="/">
@@ -46,10 +46,7 @@ const Header = () => {
             />
           </NavLink>
         </div>
-        <div className="flex items-center justify-center flex-grow">
-          <Navigation />
-        </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-center gap-4">
           <Switch
             id="darkmode"
             checked={isDarkMode}
@@ -58,6 +55,7 @@ const Header = () => {
           <Label htmlFor="darkmode" className="text-xs">
             {isDarkMode ? "light" : "dark"}
           </Label>
+          <Navigation />
         </div>
       </div>
     </div>

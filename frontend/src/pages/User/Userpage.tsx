@@ -129,7 +129,7 @@ const Userpage = () => {
 
   const renderPaginationLinks = () => {
     const { currentPage, totalPages } = pagination;
-    const links = [];
+    const links: React.ReactNode[] = [];
 
     if (totalPages === 0) return links;
 

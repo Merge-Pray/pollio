@@ -12,38 +12,35 @@ const Polloverview = () => {
     <div className="max-w-5xl mx-auto mt-8 p-6">
       <div className="flex flex-wrap justify-center gap-6">
         <NavLink to="/textpoll">
-          <Card className="flex-1 min-w-[300px]">
+          <Card className="flex-1 min-w-[300px] h-32 cursor-pointer transition-all duration-300 ease-out hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-1 active:scale-[0.98]">
             <CardHeader>
               <CardTitle className="text-2xl">Textpoll</CardTitle>
               <CardDescription className="text-lg">
-                Description for Poll 1
+                Choose between text options
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">Content for Poll 1</CardContent>
           </Card>
         </NavLink>
 
         <NavLink to="/imagepoll">
-          <Card className="flex-1 min-w-[300px]">
+          <Card className="flex-1 min-w-[300px] h-32 cursor-pointer transition-all duration-300 ease-out hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-1 active:scale-[0.98]">
             <CardHeader>
               <CardTitle className="text-2xl">Imagepoll</CardTitle>
               <CardDescription className="text-lg">
-                Description for Poll 2
+                Choose between images
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">Content for Poll 2</CardContent>
           </Card>
         </NavLink>
 
         <NavLink to="/datepoll">
-          <Card className="flex-1 min-w-[300px]">
+          <Card className="flex-1 min-w-[300px] h-32 cursor-pointer transition-all duration-300 ease-out hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-1 active:scale-[0.98]">
             <CardHeader>
               <CardTitle className="text-2xl">Datepoll</CardTitle>
               <CardDescription className="text-lg">
-                Description for Poll 3
+                Choose between dates
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">Content for Poll 3</CardContent>
           </Card>
         </NavLink>
       </div>

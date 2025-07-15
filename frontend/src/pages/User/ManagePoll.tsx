@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +17,7 @@ interface Poll {
 }
 
 const MyPolls = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [polls, setPolls] = useState<Poll[]>([]);
   const [tokenLinks, setTokenLinks] = useState<Record<string, string>>({});
@@ -26,10 +27,7 @@ const MyPolls = () => {
   useEffect(() => {
     const fetchPolls = async () => {
       try {
-        const fingerprint = localStorage.getItem("fingerprint");
-        const res = await fetch(`${API_URL}/api/poll/mine`, {
-          headers: { "x-fingerprint": fingerprint || "" },
-        });
+        const res = await fetch(`${API_URL}/api/poll/custom/${id}`);
         const data = await res.json();
         setPolls(data.polls || []);
       } catch (err) {

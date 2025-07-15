@@ -1,6 +1,7 @@
 import { generateToken } from "../libs/jwt.js";
 import { hashPassword, comparePassword } from "../libs/pw.js";
 import UserModel from "../models/user.js";
+import PollModel from "../models/poll.js";
 
 export const createUser = async (req, res, next) => {
   try {
@@ -48,28 +49,28 @@ export const verifyLogin = async (req, res, next) => {
     }
 
     const isEmail = identifier.includes("@");
-
     const query = isEmail ? { email: identifier } : { username: identifier };
 
-    const user = await UserModel.findOne(query);
+    const existingUser = await UserModel.findOne(query);
 
-    if (!user) {
+    if (!existingUser) {
+      const error = new Error("User does not exist");
+      error.statusCode = 404;
+      return next(error);
+    }
+
+    const passwordMatch = await comparePassword(
+      password,
+      existingUser.hashedPassword
+    );
+
+    if (!passwordMatch) {
       const error = new Error("Invalid credentials");
       error.statusCode = 401;
       return next(error);
     }
 
-    const isValid = await comparePassword(password, user.hashedPassword);
-
-    if (!isValid) {
-      const error = new Error("Invalid credentials");
-      error.statusCode = 401;
-      return next(error);
-    }
-
-    const { _id } = user;
-
-    const token = generateToken(user.username, _id);
+    const token = generateToken(existingUser.username, existingUser._id);
 
     res.cookie("jwt", token, {
       httpOnly: true,
@@ -79,10 +80,10 @@ export const verifyLogin = async (req, res, next) => {
     });
 
     return res.status(200).json({
-      message: `Login successful`,
+      message: "Login successful",
       user: {
-        id: user.id,
-        username: user.username,
+        id: existingUser._id,
+        username: existingUser.username,
       },
     });
   } catch (error) {
@@ -90,22 +91,27 @@ export const verifyLogin = async (req, res, next) => {
   }
 };
 
-export const logout = (req, res) => {
-  res.clearCookie("jwt", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-  });
-  res.status(200).json({ message: "Logged out successfully" });
+export const logout = async (req, res, next) => {
+  try {
+    res.clearCookie("jwt");
+    return res.status(200).json({
+      message: "Logout successful",
+    });
+  } catch (error) {
+    return next(error);
+  }
 };
 
 export const getUserData = async (req, res, next) => {
   try {
-    const id = req.params.id;
-    const user = await UserModel.findById(id); //
+    const { id } = req.params;
+
+    const user = await UserModel.findById(id).select("-hashedPassword");
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      return next(error);
     }
 
     res.status(200).json({
@@ -126,5 +132,67 @@ export const getPolls = async (req, res, next) => {
     next();
   } catch (err) {
     res.status(500).json({ error: "User not found" });
+  }
+};
+
+export const getUserPolls = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const user = await UserModel.findById(id);
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      return next(error);
+    }
+
+    if (req.user._id.toString() !== id) {
+      const error = new Error("Unauthorized access to user polls");
+      error.statusCode = 403;
+      return next(error);
+    }
+
+    const totalPolls = await PollModel.countDocuments({ creatorId: id });
+
+    const polls = await PollModel.find({ creatorId: id })
+      .select(
+        "_id title question type createdAt expirationDate expired multipleChoice"
+      )
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalPages = Math.ceil(totalPolls / limit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    const formattedPolls = polls.map((poll) => ({
+      id: poll._id,
+      title: poll.title,
+      question: poll.question,
+      type: poll.type,
+      createdAt: poll.createdAt,
+      expirationDate: poll.expirationDate,
+      expired: poll.expired,
+      multipleChoice: poll.multipleChoice,
+    }));
+
+    res.status(200).json({
+      message: "User polls retrieved successfully",
+      polls: formattedPolls,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalPolls,
+        hasNext,
+        hasPrev,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching user polls:", error);
+    return next(error);
   }
 };

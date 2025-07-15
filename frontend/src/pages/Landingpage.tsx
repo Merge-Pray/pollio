@@ -242,12 +242,12 @@ function Landingpage() {
         <NavLink to="/polloverview">
           <Card className="min-w-[300px]">
             <CardHeader>
-              <CardTitle className="text-2xl">Polloverview</CardTitle>
+              <CardTitle className="text-2xl">Custom Poll</CardTitle>
               <CardDescription className="text-lg">
-                Description for Poll 3
+                Create a custom poll with more Options
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">Content for Poll 3</CardContent>
+            <CardContent className="space-y-6">Account required</CardContent>
           </Card>
         </NavLink>
       </div>

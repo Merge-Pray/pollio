@@ -6,11 +6,8 @@ import {
   voteOnQuickPoll,
 } from "../controllers/quickPoll.js";
 import {
-  createImagePoll,
   createTextPoll,
-  deleteCustomPoll,
-  editCustomPoll,
-  generateVoteToken,
+  createImagePoll,
   getPoll,
   voteWithToken,
 } from "../controllers/poll.js";

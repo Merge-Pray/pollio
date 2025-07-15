@@ -36,7 +36,7 @@ const PollSchema = new Schema({
 
   voteTokens: [
     {
-      token: { type: String, required: true, unique: true },
+      token: { type: String, required: true },
       used: { type: Boolean, default: false },
       createdAt: { type: Date, default: Date.now },
       expiresAt: { type: Date },
@@ -48,7 +48,6 @@ const PollSchema = new Schema({
 
 PollSchema.index({ type: 1 });
 PollSchema.index({ creatorId: 1 });
-PollSchema.index({ "voteTokens.token": 1 });
 
 const PollModel = model("polls", PollSchema);
 export default PollModel;

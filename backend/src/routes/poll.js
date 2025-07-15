@@ -6,11 +6,12 @@ import {
   voteOnQuickPoll,
 } from "../controllers/quickPoll.js";
 import {
+  createImagePoll,
   createTextPoll,
   deleteCustomPoll,
   editCustomPoll,
   generateVoteToken,
-  getTextPoll,
+  getPoll,
   voteWithToken,
 } from "../controllers/poll.js";
 import { authorizeJwt } from "../middleware/auth.js";
@@ -23,9 +24,11 @@ pollRouter.get("/quick/:id", getQuickPoll);
 pollRouter.post("/quick/:id/vote", voteOnQuickPoll);
 pollRouter.get("/quick", getPublicQuick);
 
-// Text polls
+// create text
 pollRouter.post("/text", authorizeJwt, createTextPoll);
-pollRouter.get("/text/:id", getTextPoll);
+
+// create image
+pollRouter.post("/image", authorizeJwt, createImagePoll);
 
 // generateTokenLink
 pollRouter.post(":id/generatetoken", generateVoteToken);
@@ -34,3 +37,6 @@ pollRouter.post("vote/:token", voteWithToken);
 // Custom polls
 pollRouter.patch("/edit/:id", authorizeJwt, editCustomPoll);
 pollRouter.delete("delete/:id", authorizeJwt, deleteCustomPoll);
+
+// get custom poll
+pollRouter.get("/custom/:id", getPoll);

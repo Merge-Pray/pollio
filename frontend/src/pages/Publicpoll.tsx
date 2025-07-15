@@ -189,7 +189,7 @@ const Publicpoll = () => {
             {polls.map((poll) => (
               <Card
                 key={poll.id}
-                className="p-4 hover:shadow-md transition-shadow cursor-pointer"
+                className="p-4 cursor-pointer transition-all duration-300 ease-out hover:shadow-lg hover:shadow-gray-200/50 hover:-translate-y-1 active:scale-[0.98]"
                 onClick={() => handlePollClick(poll.id)}
               >
                 <div className="flex justify-between items-start">
@@ -200,7 +200,9 @@ const Publicpoll = () => {
                     {new Date(poll.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600">Click to vote</p>
+                <p className="text-sm text-gray-600 transition-colors duration-200">
+                  Click to vote
+                </p>
               </Card>
             ))}
           </div>

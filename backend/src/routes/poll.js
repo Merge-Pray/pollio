@@ -7,9 +7,7 @@ import {
 } from "../controllers/quickPoll.js";
 import {
   createTextPoll,
-  getTextPoll,
   createImagePoll,
-  getImagePoll,
   getPoll,
 } from "../controllers/poll.js";
 import { authorizeJwt } from "../middleware/auth.js";

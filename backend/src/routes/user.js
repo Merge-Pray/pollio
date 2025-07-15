@@ -4,6 +4,7 @@ import {
   getUserData,
   logout,
   verifyLogin,
+  getUserPolls,
 } from "../controllers/user.js";
 import { registerValidationRules, validate } from "../middleware/validation.js";
 import { authorizeJwt } from "../middleware/auth.js";
@@ -14,4 +15,5 @@ userRouter
   .post("/register", registerValidationRules(), validate, createUser)
   .post("/login", verifyLogin)
   .post("/logout", logout)
-  .get("/:id", authorizeJwt, getUserData);
+  .get("/:id", authorizeJwt, getUserData)
+  .get("/:id/polls", authorizeJwt, getUserPolls);

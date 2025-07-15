@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { API_URL } from "@/lib/config";
 
 interface User {
   id: string;
@@ -28,7 +29,7 @@ const zustandStorage = {
 
 const useUserStore = create<UserState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       currentUser: null,
       setCurrentUser: (user) => {
         if (user) {
@@ -42,10 +43,21 @@ const useUserStore = create<UserState>()(
       clearUser: () => set({ currentUser: null }),
       checkToken: async () => {
         try {
-          const response = await fetch(`${process.env.VITE_BACKENDPATH}/user/${id}`, {
-            method: "GET",
-            credentials: "include",
-          });
+          const currentUser = get().currentUser;
+
+          if (!currentUser) {
+            set({ currentUser: null });
+            return;
+          }
+
+          const response = await fetch(
+            `${API_URL}/api/user/${currentUser.id}`,
+            {
+              method: "GET",
+              credentials: "include",
+            }
+          );
+
           if (response.ok) {
             const user = await response.json();
             set({ currentUser: user });

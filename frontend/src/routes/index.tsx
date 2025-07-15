@@ -6,19 +6,14 @@ import Registerpage from "../pages/Registerpage";
 import Publicpoll from "../pages/Publicpoll";
 import Userpage from "../pages/User/Userpage";
 import NotFound from "../pages/NotFound";
-import Datepoll from "../pages/Personalpoll/Datepoll";
-import Uservotes from "../pages/User/Uservotes";
-import Imagepoll from "../pages/Personalpoll/Imagepoll";
-import Textpoll from "../pages/Personalpoll/Textpoll";
+import Datepoll from "../pages/CustomPoll/Datepoll";
+import ManagePoll from "../pages/User/ManagePoll";
+import Imagepoll from "../pages/CustomPoll/Imagepoll";
+import Textpoll from "../pages/CustomPoll/Textpoll";
 import QuickpollResult from "../pages/Quickpoll/QuickpollResult";
-import QuickpollDetails from "../pages/Quickpoll/QuickpollDetails";
 import QuickpollVote from "../pages/Quickpoll/QuickpollVote";
-import TextpollResult from "../pages/Personalpoll/TextpollResult";
-import DatepollResult from "../pages/Personalpoll/DatepollResult";
-import ImagepollResult from "../pages/Personalpoll/ImagepollResult";
-import TextpollVote from "../pages/Personalpoll/TextpollVote";
-import DatepollVote from "../pages/Personalpoll/DatepollVote";
-import ImagepollVote from "../pages/Personalpoll/ImagepollVote";
+import TextpollResult from "../pages/CustomPoll/CustomPollResult";
+import TextpollVote from "../pages/CustomPoll/CustomPollVote";
 import Polloverview from "@/pages/Polloverview";
 import ProtectedRoute from "../components/ProtectedRoute";
 
@@ -32,7 +27,6 @@ export const router = createBrowserRouter([
       { path: "login", element: <Loginpage /> },
       { path: "register", element: <Registerpage /> },
       { path: "quickpoll/result/:id", element: <QuickpollResult /> },
-      { path: "quickpoll/details/:id", element: <QuickpollDetails /> },
       { path: "quickpoll/vote/:id", element: <QuickpollVote /> },
       { path: "publicpoll", element: <Publicpoll /> },
       {
@@ -44,11 +38,11 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "user/votes/:id",
+        path: "user/polls/:id",
         element: (
           <ProtectedRoute>
             {" "}
-            <Uservotes />{" "}
+            <ManagePoll />{" "}
           </ProtectedRoute>
         ),
       },
@@ -79,7 +73,7 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "textpoll/vote/:id",
+        path: "custompoll/vote/:id",
         element: (
           <ProtectedRoute>
             {" "}
@@ -87,25 +81,9 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+
       {
-        path: "datepoll/vote/:id",
-        element: (
-          <ProtectedRoute>
-            {" "}
-            <DatepollVote />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "imagepoll/vote/:id",
-        element: (
-          <ProtectedRoute>
-            <ImagepollVote />{" "}
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "textpoll/result/:id",
+        path: "custompoll/result/:id",
         element: (
           <ProtectedRoute>
             {" "}
@@ -113,22 +91,7 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      {
-        path: "datepoll/result/:id",
-        element: (
-          <ProtectedRoute>
-            <DatepollResult />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: "imagepoll/result/:id",
-        element: (
-          <ProtectedRoute>
-            <ImagepollResult />{" "}
-          </ProtectedRoute>
-        ),
-      },
+
       {
         path: "polloverview",
         element: (

@@ -1,4 +1,4 @@
-const TextpollVote = () => {
-  return <div>TextpollVote</div>;
+const CustomPollVote = () => {
+  return <div>CustomPollVote</div>;
 };
-export default TextpollVote;
+export default CustomPollVote;

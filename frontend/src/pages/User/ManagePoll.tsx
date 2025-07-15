@@ -94,6 +94,10 @@ const ManagePoll = () => {
     useState<boolean>(false);
   const [editedExpirationDate, setEditedExpirationDate] = useState<string>("");
 
+  // Share tokens state
+  const [shareTokens, setShareTokens] = useState<any[]>([]);
+  const [tokenCount, setTokenCount] = useState<number>(1);
+
   useEffect(() => {
     const fetchPoll = async () => {
       if (!id) {
@@ -154,6 +158,12 @@ const ManagePoll = () => {
       carouselApi.off("select", onSelect);
     };
   }, [carouselApi]);
+
+  useEffect(() => {
+    if (poll?.voteTokens) {
+      setShareTokens(poll.voteTokens);
+    }
+  }, [poll]);
 
   const handleToggleEdit = () => {
     if (isEditing) {
@@ -343,6 +353,53 @@ const ManagePoll = () => {
     }
   };
 
+  const handleGenerateShareLinks = async () => {
+    if (!poll || tokenCount <= 0) return;
+
+    try {
+      const generatePromises = Array.from({ length: tokenCount }, async () => {
+        const response = await fetch(
+          `${API_URL}/api/poll/${id}/generatetoken`,
+          {
+            method: "POST",
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to generate token");
+        }
+
+        return await response.json();
+      });
+
+      const newTokens = await Promise.all(generatePromises);
+
+      // Refresh poll data to get updated tokens
+      const pollResponse = await fetch(`${API_URL}/api/poll/custom/${id}`);
+      if (pollResponse.ok) {
+        const updatedPoll = await pollResponse.json();
+        setPoll(updatedPoll.poll);
+        setShareTokens(updatedPoll.poll.voteTokens || []);
+      }
+    } catch (error) {
+      console.error("Error generating share links:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to generate share links"
+      );
+    }
+  };
+
+  const copyToClipboard = (token: string) => {
+    const shareLink = `${window.location.origin}/custompoll/vote/${token}`;
+    navigator.clipboard.writeText(shareLink).then(() => {
+      alert("Link copied to clipboard!");
+    });
+  };
+
   const renderTextOptions = () => {
     if (isEditing) {
       return (
@@ -523,6 +580,82 @@ const ManagePoll = () => {
     );
   };
 
+  const renderShareLinks = () => {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <Label>Generate Share Links:</Label>
+          <Input
+            type="number"
+            min="1"
+            max="10"
+            value={tokenCount}
+            onChange={(e) => setTokenCount(parseInt(e.target.value) || 1)}
+            className="w-20"
+          />
+          <Button
+            onClick={handleGenerateShareLinks}
+            variant="neutral"
+            size="sm"
+          >
+            Generate {tokenCount} Link{tokenCount > 1 ? "s" : ""}
+          </Button>
+        </div>
+
+        {shareTokens.length > 0 && (
+          <div className="space-y-3">
+            <Label className="text-lg font-semibold">Share Links:</Label>
+            <div className="max-h-60 overflow-y-auto space-y-2">
+              {shareTokens.map((tokenData, index) => (
+                <Card key={index} className="p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-medium">
+                          Token {index + 1}
+                        </span>
+                        <span
+                          className={`text-xs px-2 py-1 rounded ${
+                            tokenData.used
+                              ? "bg-red-100 text-red-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
+                        >
+                          {tokenData.used ? "Used" : "Available"}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600 truncate">
+                        {`${window.location.origin}/custompoll/vote/${tokenData.token}`}
+                      </div>
+                      {tokenData.used && tokenData.voterName && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Used by: {tokenData.voterName} on{" "}
+                          {new Date(tokenData.usedAt).toLocaleDateString()}
+                        </div>
+                      )}
+                      <div className="text-xs text-gray-500">
+                        Created:{" "}
+                        {new Date(tokenData.createdAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => copyToClipboard(tokenData.token)}
+                      variant="neutral"
+                      size="sm"
+                      disabled={tokenData.used}
+                    >
+                      Copy Link
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -647,6 +780,9 @@ const ManagePoll = () => {
             {poll.type === "text" ? renderTextOptions() : renderImageOptions()}
           </div>
 
+          {/* Share Links Section */}
+          {renderShareLinks()}
+
           {/* Action Buttons */}
           <div className="flex gap-3 flex-wrap">
             <Button onClick={handleToggleEdit} variant="neutral">
@@ -659,9 +795,6 @@ const ManagePoll = () => {
             )}
             <Button onClick={handleDeletePoll} variant="neutral">
               Delete Poll
-            </Button>
-            <Button onClick={handleVote} variant="neutral">
-              Generate Token
             </Button>
           </div>
         </CardContent>

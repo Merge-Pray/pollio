@@ -31,8 +31,8 @@ pollRouter.post("/text", authorizeJwt, createTextPoll);
 pollRouter.post("/image", authorizeJwt, createImagePoll);
 
 // generateTokenLink
-pollRouter.post(":id/generatetoken", generateVoteToken);
-pollRouter.post("vote/:token", voteWithToken);
+pollRouter.post("/:id/generatetoken", generateVoteToken);
+pollRouter.post("/vote/:token", voteWithToken);
 
 // Custom polls
 pollRouter.put("/edit/:id", authorizeJwt, editCustomPoll);

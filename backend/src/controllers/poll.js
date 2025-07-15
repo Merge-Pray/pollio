@@ -81,6 +81,7 @@ export const getPoll = async (req, res, next) => {
         expirationDate: poll.expirationDate,
         expired: poll.expired,
         createdAt: poll.createdAt,
+        voteTokens: poll.voteTokens, // Tokens hinzugefügt
       },
     });
   } catch (error) {

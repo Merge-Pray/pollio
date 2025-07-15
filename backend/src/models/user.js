@@ -25,7 +25,7 @@ const UserSchema = new Schema({
       pollModel: {
         type: String,
         required: true,
-        enum: ["datepolls", "textpolls", "imagepolls"],
+        enum: ["polls", "quickpolls"],
       },
     },
   ],

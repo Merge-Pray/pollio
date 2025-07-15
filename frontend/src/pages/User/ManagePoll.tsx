@@ -93,10 +93,26 @@ const ManagePoll = () => {
   const [editedMultipleChoice, setEditedMultipleChoice] =
     useState<boolean>(false);
   const [editedExpirationDate, setEditedExpirationDate] = useState<string>("");
+  const [editedExpirationTime, setEditedExpirationTime] =
+    useState<string>("23:59");
 
   // Share tokens state
   const [shareTokens, setShareTokens] = useState<any[]>([]);
   const [tokenCount, setTokenCount] = useState<number>(1);
+
+  // Helper function to format date and time for display
+  const formatExpirationDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const dateStr = date.toLocaleDateString();
+    const timeStr = date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return `${dateStr} at ${timeStr}`;
+  };
+
+  // Get today's date for minimum date validation
+  const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
     const fetchPoll = async () => {
@@ -127,11 +143,18 @@ const ManagePoll = () => {
         setEditedQuestion(data.poll.question || "");
         setEditedOptions(data.poll.options || []);
         setEditedMultipleChoice(data.poll.multipleChoice || false);
-        setEditedExpirationDate(
-          data.poll.expirationDate
-            ? new Date(data.poll.expirationDate).toISOString().split("T")[0]
-            : ""
-        );
+
+        // Handle expiration date and time
+        if (data.poll.expirationDate) {
+          const expirationDate = new Date(data.poll.expirationDate);
+          setEditedExpirationDate(expirationDate.toISOString().split("T")[0]);
+          setEditedExpirationTime(
+            expirationDate.toTimeString().substring(0, 5) // HH:MM format
+          );
+        } else {
+          setEditedExpirationDate("");
+          setEditedExpirationTime("23:59");
+        }
       } catch (error) {
         console.error("Error fetching poll:", error);
         setError(
@@ -173,11 +196,18 @@ const ManagePoll = () => {
         setEditedQuestion(poll.question || "");
         setEditedOptions(poll.options || []);
         setEditedMultipleChoice(poll.multipleChoice || false);
-        setEditedExpirationDate(
-          poll.expirationDate
-            ? new Date(poll.expirationDate).toISOString().split("T")[0]
-            : ""
-        );
+
+        // Reset expiration date and time
+        if (poll.expirationDate) {
+          const expirationDate = new Date(poll.expirationDate);
+          setEditedExpirationDate(expirationDate.toISOString().split("T")[0]);
+          setEditedExpirationTime(
+            expirationDate.toTimeString().substring(0, 5)
+          );
+        } else {
+          setEditedExpirationDate("");
+          setEditedExpirationTime("23:59");
+        }
       }
     }
     setIsEditing(!isEditing);
@@ -264,6 +294,15 @@ const ManagePoll = () => {
     }
 
     try {
+      // Handle expiration date and time combination
+      let expirationDate = null;
+      if (editedExpirationDate) {
+        const dateTime = `${editedExpirationDate}T${
+          editedExpirationTime || "23:59"
+        }:00`;
+        expirationDate = new Date(dateTime).toISOString();
+      }
+
       const response = await fetch(`${API_URL}/api/poll/edit/${id}`, {
         method: "PUT",
         headers: {
@@ -277,7 +316,7 @@ const ManagePoll = () => {
             poll.type === "text" ? option.text.trim() !== "" : option.imageUrl
           ),
           multipleChoice: editedMultipleChoice,
-          expirationDate: editedExpirationDate || null,
+          expirationDate: expirationDate,
         }),
       });
 
@@ -538,42 +577,50 @@ const ManagePoll = () => {
       );
     }
 
-    // Display mode for image polls
+    // Display mode for image polls - Show small previews instead of carousel
     return (
       <div className="space-y-4">
         {poll?.options && poll.options.length > 0 && (
-          <div className="w-full flex-col items-center gap-4 flex">
-            <Carousel className="w-full max-w-[400px]">
-              <CarouselContent>
-                {poll.options.map((option, index) => (
-                  <CarouselItem key={index}>
-                    <div className="p-[10px]">
-                      <Card className="shadow-none p-0 bg-main text-main-foreground">
-                        <CardContent className="flex aspect-square items-center justify-center p-4 relative">
-                          <img
-                            src={option.imageUrl}
-                            alt={option.text || `Option ${index + 1}`}
-                            className="w-full h-full object-cover rounded-md"
-                          />
-                          <div className="absolute bottom-2 left-2 right-2 bg-black bg-opacity-70 text-white p-2 rounded">
-                            <div className="flex justify-between items-center">
-                              <span className="text-sm font-medium">
-                                {option.text || `Option ${index + 1}`}
-                              </span>
-                              <span className="text-xs">
-                                Votes: {option.voters.length}
-                              </span>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {poll.options.map((option, index) => (
+              <Card
+                key={index}
+                className="shadow-sm hover:shadow-md transition-shadow"
+              >
+                <CardContent className="p-3">
+                  <div className="aspect-square mb-2">
+                    <img
+                      src={option.imageUrl}
+                      alt={option.text || `Option ${index + 1}`}
+                      className="w-full h-full object-cover rounded-md"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    {option.text && (
+                      <p
+                        className="text-sm font-medium truncate"
+                        title={option.text}
+                      >
+                        {option.text}
+                      </p>
+                    )}
+                    <div className="flex justify-between items-center text-xs text-gray-600">
+                      <span>Option {index + 1}</span>
+                      <span className="font-medium">
+                        {option.voters.length} vote
+                        {option.voters.length !== 1 ? "s" : ""}
+                      </span>
                     </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {(!poll?.options || poll.options.length === 0) && (
+          <div className="text-center text-gray-500 py-8">
+            No images available for this poll
           </div>
         )}
       </div>
@@ -746,6 +793,7 @@ const ManagePoll = () => {
               {isEditing ? (
                 <Checkbox
                   checked={editedMultipleChoice}
+                  className="mx-1"
                   onCheckedChange={(checked) =>
                     setEditedMultipleChoice(checked as boolean)
                   }
@@ -757,17 +805,27 @@ const ManagePoll = () => {
               )}
             </div>
             <div>
-              <Label>Expiration Date:</Label>
+              <Label>Expiration:</Label>
               {isEditing ? (
-                <Input
-                  type="date"
-                  value={editedExpirationDate}
-                  onChange={(e) => setEditedExpirationDate(e.target.value)}
-                />
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    type="date"
+                    value={editedExpirationDate}
+                    onChange={(e) => setEditedExpirationDate(e.target.value)}
+                    min={today}
+                    placeholder="Date"
+                  />
+                  <Input
+                    type="time"
+                    value={editedExpirationTime}
+                    onChange={(e) => setEditedExpirationTime(e.target.value)}
+                    placeholder="Time"
+                  />
+                </div>
               ) : (
                 <p className="font-medium">
                   {poll.expirationDate
-                    ? new Date(poll.expirationDate).toLocaleDateString()
+                    ? formatExpirationDateTime(poll.expirationDate)
                     : "No expiration"}
                 </p>
               )}

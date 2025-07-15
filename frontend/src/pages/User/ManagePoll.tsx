@@ -490,7 +490,6 @@ const ManagePoll = () => {
           <div className="flex items-center gap-4">
             <Button
               type="button"
-              variant="outline"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading || editedOptions.length >= 10}
               className="flex items-center gap-2"
@@ -531,9 +530,9 @@ const ManagePoll = () => {
                             />
                             <Button
                               type="button"
-                              variant="destructive"
                               size="icon"
-                              className="absolute top-2 right-2 h-6 w-6"
+                              variant="noShadow"
+                              className="absolute top-2 right-2 h-6 w-6 cursor-pointer"
                               onClick={() => removeImageOption(index)}
                             >
                               <X className="h-3 w-3" />

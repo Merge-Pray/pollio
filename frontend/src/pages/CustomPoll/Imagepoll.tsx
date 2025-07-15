@@ -348,7 +348,6 @@ function Imagepoll() {
                 <div className="flex items-center gap-4">
                   <Button
                     type="button"
-                    variant="outline"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading || uploadedImages.length >= 10}
                     className="flex items-center gap-2"
@@ -389,7 +388,7 @@ function Imagepoll() {
                                   />
                                   <Button
                                     type="button"
-                                    variant="destructive"
+                                    variant="noShadow"
                                     size="icon"
                                     className="absolute top-2 right-2 h-6 w-6"
                                     onClick={() => removeImage(index)}

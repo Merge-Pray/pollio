@@ -54,7 +54,7 @@ const Userpage = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchUserPolls = async (page: number = 1) => {
-    if (!id || !currentUser) return;
+    if (!id) return;
 
     try {
       setLoading(true);
@@ -69,6 +69,9 @@ const Userpage = () => {
       );
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("You need to be logged in to view this page");
+        }
         throw new Error("Failed to fetch user polls");
       }
 
@@ -83,10 +86,10 @@ const Userpage = () => {
   };
 
   useEffect(() => {
-    if (currentUser && id) {
+    if (id) {
       fetchUserPolls(1);
     }
-  }, [id, currentUser]);
+  }, [id]); // Remove currentUser dependency
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= pagination.totalPages) {
@@ -196,22 +199,14 @@ const Userpage = () => {
     return links;
   };
 
-  if (!currentUser) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <p className="text-lg">Please log in to view your polls.</p>
-        </div>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold">My Polls</h1>
-          <p className="text-gray-600">Welcome, {currentUser.username}</p>
+          <p className="text-gray-600">
+            {currentUser ? `Welcome, ${currentUser.username}` : "Loading..."}
+          </p>
         </div>
         <div className="flex justify-center items-center h-32">
           <div className="text-lg">Loading your polls...</div>
@@ -225,7 +220,9 @@ const Userpage = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold">My Polls</h1>
-          <p className="text-gray-600">Welcome, {currentUser.username}</p>
+          <p className="text-gray-600">
+            {currentUser ? `Welcome, ${currentUser.username}` : ""}
+          </p>
         </div>
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           {error}
@@ -238,7 +235,9 @@ const Userpage = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">My Polls</h1>
-        <p className="text-gray-600">Welcome, {currentUser.username}</p>
+        <p className="text-gray-600">
+          {currentUser ? `Welcome, ${currentUser.username}` : ""}
+        </p>
       </div>
 
       {polls.length === 0 ? (

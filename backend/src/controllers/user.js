@@ -2,7 +2,6 @@ import { generateToken } from "../libs/jwt.js";
 import { hashPassword, comparePassword } from "../libs/pw.js";
 import UserModel from "../models/user.js";
 import PollModel from "../models/poll.js";
-import jwt from "jsonwebtoken"; // nur wenn du generateToken nicht nutzt
 import { OAuth2Client } from "google-auth-library";
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 

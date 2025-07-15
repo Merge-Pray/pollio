@@ -4,7 +4,7 @@ const UserSchema = new Schema({
   username: {
     type: String,
     unique: true,
-    required: false, // Google-Nutzer brauchen das evtl. nicht
+    required: false, 
   },
   email: {
     type: String,
@@ -13,7 +13,7 @@ const UserSchema = new Schema({
   },
   hashedPassword: {
     type: String,
-    required: false, // Google-Nutzer haben kein Passwort
+    required: false,
   },
   name: String,
   avatar: String,

@@ -1,6 +1,6 @@
 import PollModel from "../models/poll.js";
 import UserModel from "../models/user.js";
-import crypto from "crypto";
+import { v4 as uuidv4 } from "uuid";
 
 export const createTextPoll = async (req, res, next) => {
   try {
@@ -92,4 +92,99 @@ export const getTextPoll = async (req, res, next) => {
   } catch (error) {
     return next(error);
   }
+};
+
+export const generateVoteToken = async (req, res) => {
+  const pollId = req.params.id;
+
+  try {
+    const token = uuidv4();
+
+    const poll = await PollModel.findById(pollId);
+    if (!poll) {
+      return res.status(404).json({ message: "Poll not found" });
+    }
+
+    poll.voteTokens.push({
+      token,
+      used: false,
+      createdAt: new Date(),
+    });
+
+    await poll.save();
+
+    res.status(200).json({ token });
+  } catch (error) {
+    console.error("Token creation failed:", error);
+    res.status(500).json({ message: "Failed to generate token" });
+  }
+};
+
+export const voteWithToken = async (req, res) => {
+  const { token } = req.params;
+  const { voterName, optionIndex } = req.body;
+
+  try {
+    const tokenEntry = await db.collection("tokens").findOne({ token });
+
+    if (!tokenEntry || tokenEntry.used) {
+      return res
+        .status(400)
+        .json({ message: "Token ungültig oder bereits verwendet" });
+    }
+
+    const poll = await db
+      .collection("polls")
+      .findOne({ id: tokenEntry.pollId });
+    if (!poll) {
+      return res.status(404).json({ message: "Umfrage nicht gefunden" });
+    }
+
+    const index = parseInt(optionIndex);
+    if (!poll.options[index]) {
+      return res.status(400).json({ message: "Ungültige Option" });
+    }
+
+    // Stimme speichern
+    poll.options[index].voteCount += 1;
+    poll.options[index].voterNames.push(voterName);
+
+    await db
+      .collection("polls")
+      .updateOne({ id: poll.id }, { $set: { options: poll.options } });
+
+    // Token als benutzt markieren
+    await db
+      .collection("tokens")
+      .updateOne({ token }, { $set: { used: true } });
+
+    res.status(200).json({ message: "Abstimmung erfolgreich" });
+  } catch (error) {
+    console.error("Fehler beim Abstimmen:", error);
+    res.status(500).json({ message: "Abstimmung fehlgeschlagen" });
+  }
+};
+
+export const editCustomPoll = async (req, res) => {
+  const pollId = req.params.id;
+  const { question, options } = req.body;
+
+  const poll = await db.polls.findOne({ id: pollId });
+  if (!poll) return res.status(404).json({ message: "Poll not found" });
+
+  await db.polls.updateOne({ id: pollId }, { $set: { question, options } });
+
+  res.json({ message: "Poll updated" });
+};
+
+export const deleteCustomPoll = async (req, res) => {
+  const pollId = req.params.id;
+
+  const poll = await db.polls.findOne({ id: pollId });
+
+  if (!poll) return res.status(404).json({ message: "Poll not found" });
+
+  await db.polls.deleteOne({ id: pollId });
+
+  res.json({ message: "Poll deleted" });
 };

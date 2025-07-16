@@ -3,7 +3,7 @@ import { Link } from "react-router";
 
 const About = () => {
   return (
-    <div className="max-w-2xl mx-auto mt-10 px-6">
+    <div className="max-w-2xl mx-auto mt-10 px-6 pb-20">
       <Card className="shadow-md">
         <CardHeader>
           <CardTitle className="text-3xl font-bold">About Pollio</CardTitle>

@@ -17,6 +17,7 @@ import {
   resetPoll,
 } from "../controllers/poll.js";
 import { authorizeJwt } from "../middleware/auth.js";
+import { verifyPollOwnership } from "../middleware/pollOwnership.js";
 
 export const pollRouter = express.Router();
 
@@ -30,17 +31,27 @@ pollRouter.get("/quick", getPublicQuick);
 pollRouter.post("/text", authorizeJwt, createTextPoll);
 pollRouter.post("/image", authorizeJwt, createImagePoll);
 
-// Custom polls - voting with tokens
+// Custom polls - voting with tokens (public)
 pollRouter.get("/token/:token", getPollByToken);
 pollRouter.post("/vote/:token", voteWithToken);
 
-// Custom polls - token generation (protected)
-pollRouter.post("/:id/generatetoken", authorizeJwt, generateVoteToken);
+// Custom polls - token generation (protected + ownership)
+pollRouter.post(
+  "/:id/generatetoken",
+  authorizeJwt,
+  verifyPollOwnership,
+  generateVoteToken
+);
 
-// Custom polls - management (protected)
-pollRouter.put("/edit/:id", authorizeJwt, editCustomPoll);
-pollRouter.delete("/delete/:id", authorizeJwt, deleteCustomPoll);
-pollRouter.post("/reset/:id", authorizeJwt, resetPoll);
+// Custom polls - management (protected + ownership)
+pollRouter.put("/edit/:id", authorizeJwt, verifyPollOwnership, editCustomPoll);
+pollRouter.delete(
+  "/delete/:id",
+  authorizeJwt,
+  verifyPollOwnership,
+  deleteCustomPoll
+);
+pollRouter.post("/reset/:id", authorizeJwt, verifyPollOwnership, resetPoll);
 
 // Custom polls - get poll data
 pollRouter.get("/custom/:id", getPoll);

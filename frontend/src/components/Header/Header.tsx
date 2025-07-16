@@ -1,7 +1,7 @@
 import { NavLink } from "react-router";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
+import { Sun, Moon } from "lucide-react";
 import Navigation from "../Navigation";
 
 const Header = () => {
@@ -53,21 +53,24 @@ return (
       <div className="flex justify-center w-full">
         <Navigation />
       </div>
+        {/* Darkmode (rechts) with Single Icon */}
+        <div className="flex justify-center lg:justify-end items-center gap-2 w-full lg:w-auto shrink-0">
+          {/* Zeigt nur das aktuelle Mode-Icon */}
+          {isDarkMode ? (
+            <Sun className="h-4 w-4" />
+          ) : (
+            <Moon className="h-4 w-4" />
+          )}
 
-      {/* Darkmode (rechts) */}
-      <div className="flex justify-center lg:justify-end items-center gap-2 w-full shrink-0">
-        <Switch
-          id="darkmode"
-          checked={isDarkMode}
-          onCheckedChange={toggleDarkMode}
-        />
-        <Label htmlFor="darkmode" className="text-xs">
-          {isDarkMode ? "light" : "dark"}
-        </Label>
+          <Switch
+            id="darkmode"
+            checked={isDarkMode}
+            onCheckedChange={toggleDarkMode}
+          />
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default Header;

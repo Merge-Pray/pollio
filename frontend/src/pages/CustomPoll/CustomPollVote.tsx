@@ -27,6 +27,7 @@ interface Poll {
   type: string;
   options: PollOption[];
   multipleChoice: boolean;
+  isAnonymous: boolean;
   expirationDate?: string;
   expired: boolean;
   createdAt: string;
@@ -54,14 +55,12 @@ const CustomPollVote = () => {
       }
 
       try {
-        // First, check if token exists and get poll data
         const response = await fetch(`${API_URL}/api/poll/token/${token}`);
 
         if (!response.ok) {
           if (response.status === 404) {
             throw new Error("Invalid vote token");
           } else if (response.status === 400) {
-            // Token already used or poll expired
             const errorData = await response.json();
 
             if (errorData.message.includes("expired")) {
@@ -69,7 +68,6 @@ const CustomPollVote = () => {
               setError("Voting has ended, poll is expired.");
               setPollId(errorData.pollId || "");
 
-              // Redirect to results after 3 seconds
               setTimeout(() => {
                 if (errorData.pollId) {
                   navigate(`/custompoll/result/${errorData.pollId}`);
@@ -77,11 +75,9 @@ const CustomPollVote = () => {
               }, 3000);
               return;
             } else {
-              // Token already used
               setTokenUsed(true);
               setError(errorData.message);
 
-              // Redirect to results after 3 seconds
               setTimeout(() => {
                 if (errorData.pollId) {
                   navigate(`/custompoll/result/${errorData.pollId}`);
@@ -96,7 +92,6 @@ const CustomPollVote = () => {
 
         const data = await response.json();
 
-        // ✅ Check if poll is expired on frontend
         if (
           data.poll.expirationDate &&
           new Date() > new Date(data.poll.expirationDate)
@@ -105,7 +100,6 @@ const CustomPollVote = () => {
           setError("Voting has ended, poll is expired.");
           setPollId(data.poll.id);
 
-          // Redirect to results after 3 seconds
           setTimeout(() => {
             navigate(`/custompoll/result/${data.poll.id}`);
           }, 3000);
@@ -169,7 +163,6 @@ const CustomPollVote = () => {
         throw new Error(errorData.message || "Failed to vote");
       }
 
-      // Redirect to results page
       navigate(`/custompoll/result/${pollId}`);
     } catch (error) {
       console.error("Error voting:", error);
@@ -428,6 +421,11 @@ const CustomPollVote = () => {
                 Multiple choices allowed
               </span>
             )}
+            {poll.isAnonymous && (
+              <span className="block text-sm text-orange-600 mt-1">
+                🔒 Anonymous poll
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -443,6 +441,12 @@ const CustomPollVote = () => {
               onChange={(e) => setVoterName(e.target.value)}
               className="max-w-md"
             />
+            {poll.isAnonymous && (
+              <div className="text-sm bg-orange-50 text-orange-700 p-3 rounded border border-orange-200">
+                <strong>ℹ️ This poll is anonymous.</strong> Public results will
+                not show your name, only the poll creator can see voter names.
+              </div>
+            )}
           </div>
 
           {/* Poll Options */}

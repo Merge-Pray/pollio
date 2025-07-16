@@ -34,6 +34,10 @@ const QuickpollResult = () => {
   const [error, setError] = useState<string | null>(null);
   const [expandedOption, setExpandedOption] = useState<number | null>(null);
 
+  // Feste Poll-ID für die 404-Umfrage
+  const NOTFOUND_POLL_ID = "6876bc27e378a4d6cf2f38ba";
+  const is404Poll = id === NOTFOUND_POLL_ID;
+
   useEffect(() => {
     const fetchPoll = async () => {
       if (!id) {
@@ -257,44 +261,58 @@ const QuickpollResult = () => {
             </Card>
           )}
 
+          {/* Unterschiedliche Button-Bereiche für 404-Poll vs normale Polls */}
           <div className="space-y-4 pt-8 border-t-2 border-border">
-            <div className="flex gap-3">
+            {is404Poll ? (
+              // Nur "Back to Home" für 404-Poll
               <Button
                 onClick={() => navigate("/")}
-                className="flex-1 h-12 text-lg cursor-pointer"
+                className="w-full h-12 text-lg cursor-pointer"
               >
-                Create New Poll
+                Back to Home
               </Button>
-              <Button
-                onClick={() => navigate(`/quickpoll/vote/${id}`)}
-                variant="noShadow"
-                className="h-12 text-lg px-6 cursor-pointer"
-              >
-                Vote Again
-              </Button>
-            </div>
+            ) : (
+              // Normale Buttons für alle anderen Polls
+              <>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => navigate("/")}
+                    className=" flex-1 h-12 text-lg cursor-pointer"
+                  >
+                    Create New Poll
+                  </Button>
+                  <Button
+                    onClick={() => navigate(`/quickpoll/vote/${id}`)}
+                    variant="noShadow"
+                    className="flex-1 h-12 text-lg px-6 cursor-pointer"
+                  >
+                    Vote Again
+                  </Button>
+                </div>
 
-            <div>
-              <p className="text-lg font-bold mb-3">SHARE THIS POLL:</p>
-              <div className="flex gap-3">
-                <Button
-                  onClick={handleShareVote}
-                  variant="noShadow"
-                  className="flex-1 cursor-pointer h-12 text-lg"
-                  size="sm"
-                >
-                  VOTE LINK
-                </Button>
-                <Button
-                  onClick={handleShareResults}
-                  variant="noShadow"
-                  className="flex-1 cursor-pointer h-12 text-lg"
-                  size="sm"
-                >
-                  RESULTS LINK
-                </Button>
-              </div>
-            </div>
+                <div>
+                  <p className="text-lg font-bold mb-3">SHARE THIS POLL:</p>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={handleShareVote}
+                      variant="noShadow"
+                      className="flex-1 cursor-pointer h-12 text-lg"
+                      size="sm"
+                    >
+                      VOTE LINK
+                    </Button>
+                    <Button
+                      onClick={handleShareResults}
+                      variant="noShadow"
+                      className="flex-1 cursor-pointer h-12 text-lg"
+                      size="sm"
+                    >
+                      RESULTS LINK
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>

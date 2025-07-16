@@ -161,7 +161,7 @@ export const getUserPolls = async (req, res, next) => {
 
     const polls = await PollModel.find({ creatorId: id })
       .select(
-        "_id title question type createdAt expirationDate expired multipleChoice"
+        "_id title question type createdAt expirationDate expired multipleChoice isAnonymous"
       )
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -180,6 +180,7 @@ export const getUserPolls = async (req, res, next) => {
       expirationDate: poll.expirationDate,
       expired: poll.expired,
       multipleChoice: poll.multipleChoice,
+      isAnonymous: poll.isAnonymous,
     }));
 
     res.status(200).json({

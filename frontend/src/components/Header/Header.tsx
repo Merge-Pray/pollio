@@ -33,26 +33,26 @@ const Header = () => {
     }
   };
 
-  return (
-    <div className="w-full px-4 lg:px-16 mt-6">
-      {/* Wrapper: Flex-Layout */}
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 w-full">
-        {/* Logo (links) */}
-        <div className="flex justify-center lg:justify-start w-full lg:w-auto shrink-0">
-          <NavLink to="/">
-            <img
-              src={isDarkMode ? "/p-logo-w2.svg" : "/p-logo-s2.svg"}
-              alt="logo"
-              className="h-15 object-contain"
-            />
-          </NavLink>
-        </div>
+return (
+  <div className="w-full px-4 lg:px-16 mt-6">
+    {/* Wrapper: Flex für Mobile, Grid für Desktop */}
+    <div className="flex flex-col items-center gap-4 w-full lg:grid lg:grid-cols-[auto_1fr_auto] lg:items-center">
 
-        {/* Navigation (zentriert) */}
-        <div className="flex justify-center w-full lg:w-auto">
-          <Navigation />
-        </div>
+      {/* Logo (links) */}
+      <div className="flex justify-center lg:justify-start w-full shrink-0">
+        <NavLink to="/">
+          <img
+            src={isDarkMode ? "/p-logo-w2.svg" : "/p-logo-s2.svg"}
+            alt="logo"
+            className="h-15 object-contain"
+          />
+        </NavLink>
+      </div>
 
+      {/* Navigation (zentriert) */}
+      <div className="flex justify-center w-full">
+        <Navigation />
+      </div>
         {/* Darkmode (rechts) with Single Icon */}
         <div className="flex justify-center lg:justify-end items-center gap-2 w-full lg:w-auto shrink-0">
           {/* Zeigt nur das aktuelle Mode-Icon */}

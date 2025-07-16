@@ -35,22 +35,18 @@ export default function Navigation() {
       <NavigationMenuList>
         {currentUser ? (
           <>
-            <NavigationMenuItem>
-              <NavigationMenuTrigger className="cursor-pointer">
-                {currentUser.username}
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-[300px] gap-3 p-2 lg:grid-cols-[.75fr_1fr]">
-                  <li className="row-span-3"></li>
-                  <ListItem
-                    href={`/user/${currentUser.id}`}
-                    title="Your Polls"
-                  />
+           <NavigationMenuItem className="relative flex justify-center">
+  <NavigationMenuTrigger className="cursor-pointer">
+    {currentUser.username}
+  </NavigationMenuTrigger>
 
-                  <ListItem href="/polloverview" title="Add Custom Poll" />
-                </ul>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
+  <NavigationMenuContent className="flex justify-center mt-3 w-full ">
+    <ul className="flex flex-col items-center gap-3 p-8 w-[270px]">
+      <ListItem href={`/user/${currentUser.id}`} title="Your Polls" />
+      <ListItem href="/polloverview" title="Add Custom Poll" />
+    </ul>
+  </NavigationMenuContent>
+</NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuLink
                 href="/polloverview"

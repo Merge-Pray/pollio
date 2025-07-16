@@ -71,94 +71,57 @@ export const getQuickPoll = async (req, res, next) => {
   }
 };
 
-export const voteOnQuickPoll = async (req, res, next) => {
+export const voteOnQuickPoll = async (req, res) => {
   try {
     const { id } = req.params;
     const { optionIndex, voterName, fingerprint } = req.body;
 
-    const ipAddress =
-      req.ip ||
-      req.connection.remoteAddress ||
-      req.socket.remoteAddress ||
-      (req.connection.socket ? req.connection.socket.remoteAddress : null) ||
-      req.headers["x-forwarded-for"]?.split(",")[0] ||
-      "unknown";
-
-    if (typeof optionIndex !== "number" || optionIndex < 0) {
-      const error = new Error("Invalid option selected");
-      error.statusCode = 400;
-      return next(error);
-    }
-
-    if (!voterName || voterName.trim().length === 0) {
-      const error = new Error("Voter name is required");
-      error.statusCode = 400;
-      return next(error);
-    }
-
-    if (!fingerprint) {
-      const error = new Error("Browser fingerprint is required");
-      error.statusCode = 400;
-      return next(error);
-    }
-
     const poll = await QuickPollModel.findById(id);
-
     if (!poll) {
-      const error = new Error("Poll not found");
-      error.statusCode = 404;
-      return next(error);
+      return res.status(404).json({ message: "Poll not found" });
     }
 
-    if (poll.expired) {
-      const error = new Error("This poll has expired");
-      error.statusCode = 410;
-      return next(error);
+    const clientIP = req.ip || req.connection.remoteAddress || "unknown";
+
+    // Für die spezielle 404-Poll: Erlaube mehrfaches Voting
+    const is404Poll = id === "6876bc27e378a4d6cf2f38ba";
+
+    if (!is404Poll) {
+      // Normale Duplicate-Checks für andere Polls
+      const isDuplicateVote = poll.options.some((option) =>
+        option.voters.some(
+          (voter) =>
+            voter.ipAddress === clientIP && voter.fingerprint === fingerprint
+        )
+      );
+
+      if (isDuplicateVote) {
+        return res
+          .status(400)
+          .json({ message: "You have already voted on this poll" });
+      }
     }
 
-    if (optionIndex >= poll.options.length) {
-      const error = new Error("Invalid option selected");
-      error.statusCode = 400;
-      return next(error);
-    }
+    // Für 404-Poll: Verwende zufälligen Fingerprint wenn keiner gegeben
+    const finalFingerprint =
+      is404Poll && !fingerprint
+        ? Math.random().toString(36).substring(2, 15)
+        : fingerprint;
 
-    const hasVoted = poll.options.some((option) =>
-      option.voters.some(
-        (voter) =>
-          voter.ipAddress === ipAddress && voter.fingerprint === fingerprint
-      )
-    );
-
-    if (hasVoted) {
-      const error = new Error("You have already voted on this poll");
-      error.statusCode = 409;
-      return next(error);
-    }
-
-    const voterData = {
-      name: voterName.trim(),
-      ipAddress: ipAddress,
-      fingerprint: fingerprint,
+    const newVoter = {
+      name: voterName,
+      ipAddress: clientIP,
+      fingerprint: finalFingerprint,
       votedAt: new Date(),
     };
 
-    poll.options[optionIndex].voters.push(voterData);
+    poll.options[optionIndex].voters.push(newVoter);
     await poll.save();
 
-    return res.status(200).json({
-      message: "Vote recorded successfully",
-      poll: {
-        id: poll._id,
-        question: poll.question,
-        options: poll.options.map((option) => ({
-          text: option.text,
-          voterNames: option.voters.map((voter) => voter.name),
-          voteCount: option.voters.length,
-        })),
-      },
-    });
+    res.status(200).json({ message: "Vote recorded successfully" });
   } catch (error) {
-    return next(error);
+    console.error("Error voting on quick poll:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 

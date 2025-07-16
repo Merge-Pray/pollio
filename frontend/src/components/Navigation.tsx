@@ -41,7 +41,7 @@ export default function Navigation() {
   </NavigationMenuTrigger>
 
   <NavigationMenuContent className="flex justify-center mt-3 w-full ">
-    <ul className="flex flex-col items-left gap-3 p-8 w-[230px]">
+    <ul className="flex flex-col items-left gap-2 p-6 w-[230px]">
       <ListItem href={`/user/${currentUser.id}`} title="Your Polls" />
       <ListItem href="/polloverview" title="Add Custom Poll" />
     </ul>

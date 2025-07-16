@@ -12,10 +12,16 @@ import Imagepoll from "../pages/CustomPoll/Imagepoll";
 import Textpoll from "../pages/CustomPoll/Textpoll";
 import QuickpollResult from "../pages/Quickpoll/QuickpollResult";
 import QuickpollVote from "../pages/Quickpoll/QuickpollVote";
-import TextpollVote from "../pages/CustomPoll/CustomPollVote";
 import Polloverview from "@/pages/Polloverview";
 import ProtectedRoute from "../components/ProtectedRoute";
+import TextpollVote from "../pages/CustomPoll/CustomPollVote";
+import DataPrivacy from "@/pages/Legal/DataPrivacy";
+import GeneralTermsAndConditions from "@/pages/Legal/GeneralTermsAndConditions";
+import LegalNotice from "@/pages/Legal/LegalNotice";
+import About from "@/pages/Legal/About";
+
 import CustomPollResult from "../pages/CustomPoll/CustomPollResult";
+
 
 export const router = createBrowserRouter([
   {
@@ -31,6 +37,14 @@ export const router = createBrowserRouter([
       { path: "publicpoll", element: <Publicpoll /> },
       { path: "custompoll/vote/:id", element: <TextpollVote /> },
       { path: "custompoll/result/:id", element: <CustomPollResult /> },
+
+      { path: "legalnotice", element: <LegalNotice /> },
+      { path: "gtc", element: <GeneralTermsAndConditions /> },
+      { path: "dataprivacy", element: <DataPrivacy /> },
+      { path: "about", element: <About /> },
+
+   
+
       {
         path: "user/:id",
         element: (

@@ -34,28 +34,28 @@ const Header = () => {
   };
 
 return (
-  <div className="w-full px-4 sm:px-16 mt-6">
-    <div className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_1fr] items-center gap-4 w-full">
-      {/* Logo */}
-      <div className="flex justify-center sm:justify-start">
+  <div className="w-full px-4 lg:px-16 mt-6">
+    {/* Wrapper: Flex-Layout */}
+    <div className="flex flex-col lg:flex-row items-center justify-between gap-4 w-full">
+
+      {/* Logo (links) */}
+      <div className="flex justify-center lg:justify-start w-full lg:w-auto shrink-0">
         <NavLink to="/">
           <img
             src={isDarkMode ? "/p-logo-w2.svg" : "/p-logo-s2.svg"}
             alt="logo"
-            className="h-20 max-w-[180px] w-full object-contain"
+            className="h-15 object-contain"
           />
         </NavLink>
       </div>
 
-      {/* Navigation */}
-      <div className="flex justify-center min-w-0 overflow-hidden">
-        <div className="truncate">
-          <Navigation />
-        </div>
+      {/* Navigation (zentriert) */}
+      <div className="flex justify-center w-full lg:w-auto">
+        <Navigation />
       </div>
 
-      {/* Toggle */}
-      <div className="flex justify-center sm:justify-end items-center gap-2">
+      {/* Darkmode (rechts) */}
+      <div className="flex justify-center lg:justify-end items-center gap-2 w-full lg:w-auto shrink-0">
         <Switch
           id="darkmode"
           checked={isDarkMode}

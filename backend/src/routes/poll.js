@@ -8,6 +8,7 @@ import {
 import {
   createTextPoll,
   createImagePoll,
+  createDatePoll,
   getPoll,
   getPollByToken,
   voteWithToken,
@@ -30,6 +31,7 @@ pollRouter.get("/quick", getPublicQuick);
 // Custom polls - create
 pollRouter.post("/text", authorizeJwt, createTextPoll);
 pollRouter.post("/image", authorizeJwt, createImagePoll);
+pollRouter.post("/date", authorizeJwt, createDatePoll);
 
 // Custom polls - voting with tokens (public)
 pollRouter.get("/token/:token", getPollByToken);
@@ -45,13 +47,13 @@ pollRouter.post(
 
 // Custom polls - management (protected + ownership)
 pollRouter.put("/edit/:id", authorizeJwt, verifyPollOwnership, editCustomPoll);
+pollRouter.post("/reset/:id", authorizeJwt, verifyPollOwnership, resetPoll);
 pollRouter.delete(
   "/delete/:id",
   authorizeJwt,
   verifyPollOwnership,
   deleteCustomPoll
 );
-pollRouter.post("/reset/:id", authorizeJwt, verifyPollOwnership, resetPoll);
 
 // Custom polls - get poll data
 pollRouter.get("/custom/:id", getPoll);

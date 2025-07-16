@@ -13,11 +13,16 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { API_URL } from "@/lib/config";
+import { Calendar, Clock } from "lucide-react";
 
 interface PollOption {
   text: string;
   imageUrl?: string;
+  dateTime?: string;
   voters: string[];
+  yes?: string[];
+  no?: string[];
+  maybe?: string[];
 }
 
 interface Poll {
@@ -33,12 +38,19 @@ interface Poll {
   createdAt: string;
 }
 
+interface DateAvailability {
+  [optionIndex: string]: "yes" | "no" | "maybe" | "";
+}
+
 const CustomPollVote = () => {
   const { id: token } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [poll, setPoll] = useState<Poll | null>(null);
   const [pollId, setPollId] = useState<string>("");
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const [dateAvailability, setDateAvailability] = useState<DateAvailability>(
+    {}
+  );
   const [voterName, setVoterName] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [isVoting, setIsVoting] = useState(false);
@@ -108,6 +120,15 @@ const CustomPollVote = () => {
 
         setPoll(data.poll);
         setPollId(data.poll.id);
+
+        // Initialize date availability for date polls with multipleChoice
+        if (data.poll.type === "date" && data.poll.multipleChoice) {
+          const initialAvailability: DateAvailability = {};
+          data.poll.options.forEach((_, index) => {
+            initialAvailability[index.toString()] = "";
+          });
+          setDateAvailability(initialAvailability);
+        }
       } catch (error) {
         console.error("Error fetching poll:", error);
         setError(
@@ -138,24 +159,79 @@ const CustomPollVote = () => {
     }
   };
 
+  const handleDateAvailabilityChange = (
+    optionIndex: string,
+    availability: "yes" | "no" | "maybe"
+  ) => {
+    setDateAvailability((prev) => ({
+      ...prev,
+      [optionIndex]: availability,
+    }));
+  };
+
+  const formatDateTime = (dateTimeString: string) => {
+    const date = new Date(dateTimeString);
+    return date.toLocaleString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const isDateVoteComplete = () => {
+    if (poll?.type !== "date" || !poll.multipleChoice) return true;
+
+    return poll.options.every((_, index) => {
+      const availability = dateAvailability[index.toString()];
+      return (
+        availability === "yes" ||
+        availability === "no" ||
+        availability === "maybe"
+      );
+    });
+  };
+
   const handleVote = async () => {
-    if (!selectedOptions.length || !poll || !token || !voterName.trim()) return;
+    if (!poll || !token || !voterName.trim()) return;
+
+    // Validate different poll types
+    if (poll.type === "date" && poll.multipleChoice) {
+      if (!isDateVoteComplete()) {
+        setError("Please answer Yes, No, or Maybe for each date option");
+        return;
+      }
+    } else if (!selectedOptions.length) {
+      setError("Please select at least one option");
+      return;
+    }
 
     setIsVoting(true);
     setError(null);
 
     try {
+      let requestBody: any = {
+        voterName: voterName.trim(),
+      };
+
+      if (poll.type === "date" && poll.multipleChoice) {
+        // Send availability responses for date polls
+        requestBody.dateAvailability = dateAvailability;
+      } else {
+        // Send selected options for other poll types
+        requestBody.optionIndexes = poll.multipleChoice
+          ? selectedOptions.map((opt) => parseInt(opt))
+          : [parseInt(selectedOptions[0])];
+      }
+
       const response = await fetch(`${API_URL}/api/poll/vote/${token}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          voterName: voterName.trim(),
-          optionIndexes: poll.multipleChoice
-            ? selectedOptions.map((opt) => parseInt(opt))
-            : [parseInt(selectedOptions[0])],
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -220,6 +296,170 @@ const CustomPollVote = () => {
             >
               {option.text}
             </Label>
+          </div>
+        ))}
+      </RadioGroup>
+    );
+  };
+
+  const renderDateOptions = () => {
+    if (poll?.multipleChoice) {
+      // Yes/No/Maybe voting for date polls
+      return (
+        <div className="space-y-4">
+          <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <strong>ℹ️ Availability Check:</strong> Please indicate your
+            availability for each date and time option.
+          </div>
+          {poll.options.map((option, index) => (
+            <div key={index} className="border rounded-lg p-4 bg-gray-50">
+              <div className="flex items-start gap-3 mb-4">
+                <Calendar className="h-5 w-5 text-gray-500 mt-1" />
+                <div className="flex-1">
+                  <h4 className="font-medium text-lg">{option.text}</h4>
+                  {option.dateTime && (
+                    <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                      <Clock className="h-4 w-4" />
+                      {formatDateTime(option.dateTime)}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={
+                    dateAvailability[index.toString()] === "yes"
+                      ? "default"
+                      : "outline"
+                  }
+                  size="sm"
+                  onClick={() =>
+                    handleDateAvailabilityChange(index.toString(), "yes")
+                  }
+                  className={`flex-1 ${
+                    dateAvailability[index.toString()] === "yes"
+                      ? "bg-green-600 hover:bg-green-700 text-white"
+                      : "hover:bg-green-50 hover:border-green-300"
+                  }`}
+                >
+                  ✓ Yes
+                </Button>
+                <Button
+                  type="button"
+                  variant={
+                    dateAvailability[index.toString()] === "no"
+                      ? "default"
+                      : "outline"
+                  }
+                  size="sm"
+                  onClick={() =>
+                    handleDateAvailabilityChange(index.toString(), "no")
+                  }
+                  className={`flex-1 ${
+                    dateAvailability[index.toString()] === "no"
+                      ? "bg-red-600 hover:bg-red-700 text-white"
+                      : "hover:bg-red-50 hover:border-red-300"
+                  }`}
+                >
+                  ✗ No
+                </Button>
+                <Button
+                  type="button"
+                  variant={
+                    dateAvailability[index.toString()] === "maybe"
+                      ? "default"
+                      : "outline"
+                  }
+                  size="sm"
+                  onClick={() =>
+                    handleDateAvailabilityChange(index.toString(), "maybe")
+                  }
+                  className={`flex-1 ${
+                    dateAvailability[index.toString()] === "maybe"
+                      ? "bg-yellow-600 hover:bg-yellow-700 text-white"
+                      : "hover:bg-yellow-50 hover:border-yellow-300"
+                  }`}
+                >
+                  ? Maybe
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // Regular single/multiple choice for date polls (like text polls)
+    if (poll?.multipleChoice) {
+      return (
+        <div className="space-y-3">
+          {poll.options.map((option, index) => (
+            <div
+              key={index}
+              className="flex items-start space-x-3 border rounded-lg p-3 hover:bg-gray-50"
+            >
+              <Checkbox
+                id={`date-option-${index}`}
+                checked={selectedOptions.includes(index.toString())}
+                onCheckedChange={(checked) =>
+                  handleMultipleOptionChange(
+                    index.toString(),
+                    checked as boolean
+                  )
+                }
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <Label
+                  htmlFor={`date-option-${index}`}
+                  className="cursor-pointer font-medium block"
+                >
+                  {option.text}
+                </Label>
+                {option.dateTime && (
+                  <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                    <Clock className="h-4 w-4" />
+                    {formatDateTime(option.dateTime)}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <RadioGroup
+        value={selectedOptions[0]}
+        onValueChange={handleSingleOptionChange}
+      >
+        {poll?.options.map((option, index) => (
+          <div
+            key={index}
+            className="flex items-start space-x-3 border rounded-lg p-3 hover:bg-gray-50"
+          >
+            <RadioGroupItem
+              value={index.toString()}
+              id={`date-option-${index}`}
+              className="mt-1"
+            />
+            <div className="flex-1">
+              <Label
+                htmlFor={`date-option-${index}`}
+                className="cursor-pointer font-medium block"
+              >
+                {option.text}
+              </Label>
+              {option.dateTime && (
+                <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                  <Clock className="h-4 w-4" />
+                  {formatDateTime(option.dateTime)}
+                </p>
+              )}
+            </div>
           </div>
         ))}
       </RadioGroup>
@@ -324,6 +564,30 @@ const CustomPollVote = () => {
     );
   };
 
+  const getVotingInstructions = () => {
+    if (poll?.type === "date") {
+      if (poll.multipleChoice) {
+        return "Indicate your availability for each date";
+      } else {
+        return `Choose your preferred ${
+          poll.multipleChoice ? "dates" : "date"
+        }`;
+      }
+    } else {
+      return `Choose your ${poll.multipleChoice ? "options" : "option"}`;
+    }
+  };
+
+  const isVoteValid = () => {
+    if (!voterName.trim()) return false;
+
+    if (poll?.type === "date" && poll.multipleChoice) {
+      return isDateVoteComplete();
+    }
+
+    return selectedOptions.length > 0;
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -413,10 +677,18 @@ const CustomPollVote = () => {
     <div className="max-w-4xl mx-auto mt-8 p-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">{poll.title}</CardTitle>
+          <CardTitle className="text-2xl flex items-center gap-2">
+            {poll.type === "date" && <Calendar className="h-6 w-6" />}
+            {poll.title}
+          </CardTitle>
           <CardDescription className="text-lg">
             {poll.question}
-            {poll.multipleChoice && (
+            {poll.type === "date" && poll.multipleChoice && (
+              <span className="block text-sm text-blue-600 mt-1">
+                Availability check: Answer for each date option
+              </span>
+            )}
+            {poll.multipleChoice && poll.type !== "date" && (
               <span className="block text-sm text-blue-600 mt-1">
                 Multiple choices allowed
               </span>
@@ -452,9 +724,11 @@ const CustomPollVote = () => {
           {/* Poll Options */}
           <div className="space-y-4">
             <Label className="text-lg font-semibold">
-              Choose your {poll.multipleChoice ? "options" : "option"}:
+              {getVotingInstructions()}:
             </Label>
-            {poll.type === "text" ? renderTextOptions() : renderImageOptions()}
+            {poll.type === "text" && renderTextOptions()}
+            {poll.type === "date" && renderDateOptions()}
+            {poll.type === "image" && renderImageOptions()}
           </div>
 
           {/* Error Message */}
@@ -480,9 +754,7 @@ const CustomPollVote = () => {
           <div className="flex gap-3 pt-4">
             <Button
               onClick={handleVote}
-              disabled={
-                !selectedOptions.length || !voterName.trim() || isVoting
-              }
+              disabled={!isVoteValid() || isVoting}
               className="flex-1"
             >
               {isVoting ? "Submitting Vote..." : "Submit Vote"}

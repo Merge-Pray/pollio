@@ -18,11 +18,15 @@ import {
 } from "../../components/ui/carousel";
 import { API_URL } from "@/lib/config";
 import useUserStore from "@/hooks/userstore";
-import { X } from "lucide-react";
+import { X, Calendar, Clock } from "lucide-react";
 
 interface PollOption {
   text: string;
   imageUrl?: string;
+  dateTime?: string;
+  yes?: string[];
+  no?: string[];
+  maybe?: string[];
   voters: string[];
 }
 
@@ -110,6 +114,335 @@ const CustomPollResult = () => {
       document.execCommand("copy");
       document.body.removeChild(textArea);
       alert("Results link copied to clipboard!");
+    }
+  };
+
+  const formatDateTime = (dateTimeString: string) => {
+    const date = new Date(dateTimeString);
+    return date.toLocaleString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const renderDatePollResults = () => {
+    const isCreator = currentUser && poll && currentUser.id === poll.creatorId;
+
+    if (poll?.multipleChoice) {
+      // Availability Check Display - show best dates based on Yes votes
+      const sortedOptions = poll.options
+        .map((option, originalIndex) => ({
+          ...option,
+          originalIndex,
+          yesCount: option.yes?.length || 0,
+          noCount: option.no?.length || 0,
+          maybeCount: option.maybe?.length || 0,
+          totalResponses:
+            (option.yes?.length || 0) +
+            (option.no?.length || 0) +
+            (option.maybe?.length || 0),
+        }))
+        .sort((a, b) => {
+          // Sort by Yes votes first, then by total responses
+          if (b.yesCount !== a.yesCount) {
+            return b.yesCount - a.yesCount;
+          }
+          return b.totalResponses - a.totalResponses;
+        });
+
+      return (
+        <div className="space-y-6">
+          <div className="text-sm bg-green-50 text-green-700 p-3 rounded-lg border border-green-200">
+            <strong>🗓️ Availability Check Results:</strong> Dates are ranked by
+            the number of "Yes" responses.
+          </div>
+
+          {sortedOptions.map((option, index) => (
+            <Card key={option.originalIndex} className="border-2 border-border">
+              <CardContent className="pt-6 pb-6">
+                <div className="flex items-start gap-4 mb-4">
+                  <Calendar className="h-6 w-6 text-gray-500 mt-1" />
+                  <div className="flex-1">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <h3 className="font-bold text-xl">
+                          {option.text || `Date Option ${index + 1}`}
+                        </h3>
+                        {option.dateTime && (
+                          <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                            <Clock className="h-4 w-4" />
+                            {formatDateTime(option.dateTime)}
+                          </p>
+                        )}
+                      </div>
+                      {index === 0 && option.yesCount > 0 && (
+                        <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                          🏆 Best Option
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold text-green-600">
+                          {option.yesCount}
+                        </div>
+                        <div className="text-sm text-green-700">✓ Yes</div>
+                      </div>
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold text-red-600">
+                          {option.noCount}
+                        </div>
+                        <div className="text-sm text-red-700">✗ No</div>
+                      </div>
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold text-yellow-600">
+                          {option.maybeCount}
+                        </div>
+                        <div className="text-sm text-yellow-700">? Maybe</div>
+                      </div>
+                    </div>
+
+                    {option.totalResponses > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Yes responses</span>
+                          <span>
+                            {Math.round(
+                              (option.yesCount / option.totalResponses) * 100
+                            )}
+                            %
+                          </span>
+                        </div>
+                        <Progress
+                          value={
+                            (option.yesCount / option.totalResponses) * 100
+                          }
+                          className="h-3 border border-green-300"
+                        />
+                      </div>
+                    )}
+
+                    {isCreator &&
+                      option.totalResponses > 0 &&
+                      !poll?.isAnonymous && (
+                        <div className="mt-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs"
+                            onClick={() =>
+                              setExpandedOption(
+                                expandedOption === option.originalIndex
+                                  ? null
+                                  : option.originalIndex
+                              )
+                            }
+                          >
+                            {expandedOption === option.originalIndex
+                              ? "▲ Hide voters"
+                              : "▼ Show voters"}
+                          </Button>
+
+                          <div
+                            className={`transition-all overflow-hidden ${
+                              expandedOption === option.originalIndex
+                                ? "max-h-64 opacity-100 mt-4"
+                                : "max-h-0 opacity-0"
+                            }`}
+                          >
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              {option.yesCount > 0 && (
+                                <div>
+                                  <h4 className="font-medium text-green-700 mb-2">
+                                    Yes ({option.yesCount})
+                                  </h4>
+                                  <div className="space-y-1">
+                                    {option.yes?.map(
+                                      (voterName, voterIndex) => (
+                                        <span
+                                          key={voterIndex}
+                                          className="block text-sm bg-green-100 text-green-800 px-2 py-1 rounded border border-green-300"
+                                        >
+                                          {voterName}
+                                        </span>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {option.noCount > 0 && (
+                                <div>
+                                  <h4 className="font-medium text-red-700 mb-2">
+                                    No ({option.noCount})
+                                  </h4>
+                                  <div className="space-y-1">
+                                    {option.no?.map((voterName, voterIndex) => (
+                                      <span
+                                        key={voterIndex}
+                                        className="block text-sm bg-red-100 text-red-800 px-2 py-1 rounded border border-red-300"
+                                      >
+                                        {voterName}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {option.maybeCount > 0 && (
+                                <div>
+                                  <h4 className="font-medium text-yellow-700 mb-2">
+                                    Maybe ({option.maybeCount})
+                                  </h4>
+                                  <div className="space-y-1">
+                                    {option.maybe?.map(
+                                      (voterName, voterIndex) => (
+                                        <span
+                                          key={voterIndex}
+                                          className="block text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded border border-yellow-300"
+                                        >
+                                          {voterName}
+                                        </span>
+                                      )
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                    {poll?.isAnonymous && (
+                      <div className="mt-4 text-xs text-gray-500 flex items-center gap-1">
+                        <span>🔒</span>
+                        <span>Anonymous poll - voter names are hidden</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      );
+    } else {
+      // Single Choice Display - similar to text polls but with date formatting
+      return (
+        <div className="space-y-4">
+          {poll?.options
+            .sort((a, b) => b.voters.length - a.voters.length)
+            .map((option, index) => (
+              <Card
+                key={index}
+                className={`border-2 ${
+                  isCreator && option.voters.length > 0 ? "cursor-pointer" : ""
+                } transition-all hover:shadow-[4px_4px_0px_0px_var(--border)] hover:translate-x-[-2px] hover:translate-y-[-2px] border-border`}
+                onClick={() =>
+                  isCreator && option.voters.length > 0
+                    ? setExpandedOption(expandedOption === index ? null : index)
+                    : undefined
+                }
+              >
+                <CardContent className="pt-8 pb-8">
+                  <div className="flex items-start gap-4 mb-4">
+                    <Calendar className="h-6 w-6 text-gray-500 mt-1" />
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex-1 pr-4">
+                          <h3 className="font-bold text-xl">
+                            {option.text || `Date Option ${index + 1}`}
+                          </h3>
+                          {option.dateTime && (
+                            <p className="text-sm text-gray-600 flex items-center gap-1 mt-2">
+                              <Clock className="h-4 w-4" />
+                              {formatDateTime(option.dateTime)}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-bold bg-main text-main-foreground px-3 py-2 rounded border-2 border-border">
+                            {option.voters.length} votes
+                          </span>
+                          <span className="text-sm font-bold bg-secondary-background px-3 py-2 rounded border-2 border-border">
+                            {getVotePercentage(option.voters.length)}%
+                          </span>
+                        </div>
+                      </div>
+
+                      <Progress
+                        value={getVotePercentage(option.voters.length)}
+                        className="mb-4 h-8 border-2 border-border"
+                      />
+
+                      {isCreator && option.voters.length > 0 && (
+                        <div
+                          className={`transition-all overflow-hidden ${
+                            expandedOption === index
+                              ? "max-h-40 opacity-100"
+                              : "max-h-0 opacity-0"
+                          }`}
+                        >
+                          <div className="border-t-2 border-border pt-4 mt-4">
+                            <div className="flex flex-wrap gap-2">
+                              {option.voters.map((voterName, voterIndex) => (
+                                <span
+                                  key={voterIndex}
+                                  className="text-sm bg-main text-main-foreground px-3 py-2 rounded border border-border font-medium"
+                                >
+                                  {voterName}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {isCreator && option.voters.length > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-2 text-xs h-8 px-2 py-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedOption(
+                              expandedOption === index ? null : index
+                            );
+                          }}
+                        >
+                          {expandedOption === index
+                            ? "▲ Hide voters"
+                            : "▼ Show voters"}
+                        </Button>
+                      )}
+
+                      {poll?.isAnonymous && !isCreator && (
+                        <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                          <span>🔒</span>
+                          <span>Anonymous poll - voter names are hidden</span>
+                        </div>
+                      )}
+
+                      {poll?.isAnonymous && isCreator && (
+                        <div className="mt-2 text-xs text-blue-600 flex items-center gap-1">
+                          <span>🔒</span>
+                          <span>
+                            Anonymous poll - only you can see voter names
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+        </div>
+      );
     }
   };
 
@@ -390,71 +723,39 @@ const CustomPollResult = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Poll Results */}
-            {poll.type === "text"
-              ? renderTextPollResults()
-              : renderImagePollResults()}
+            {poll.type === "text" && renderTextPollResults()}
+            {poll.type === "image" && renderImagePollResults()}
+            {poll.type === "date" && renderDatePollResults()}
 
             {/* Action Buttons */}
             <div className="space-y-4 pt-8 border-t-2 border-border">
               {currentUser ? (
-                <>
-                  <div className="flex gap-3">
+                <div className="flex gap-3 flex-wrap">
+                  <Button onClick={handleShareResults} variant="noShadow">
+                    Share Results
+                  </Button>
+                  <Button onClick={() => navigate("/")} variant="noShadow">
+                    Back to Home
+                  </Button>
+                  {currentUser.id === poll.creatorId && (
                     <Button
-                      onClick={() => navigate("/polloverview")}
-                      className="flex-1 h-12 text-lg cursor-pointer"
-                    >
-                      Create New Poll
-                    </Button>
-                    {currentUser.id === poll.creatorId && (
-                      <Button
-                        onClick={() => navigate(`/user/polls/${id}`)}
-                        variant="noShadow"
-                        className="h-12 text-lg px-6 cursor-pointer"
-                      >
-                        Manage Poll
-                      </Button>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold mb-3">SHARE RESULTS:</p>
-                    <div className="flex gap-3">
-                      <Button
-                        onClick={handleShareResults}
-                        variant="noShadow"
-                        className="flex-1 cursor-pointer h-12 text-lg"
-                        size="sm"
-                      >
-                        COPY RESULTS LINK
-                      </Button>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div>
-                  <p className="text-lg font-bold mb-3">SHARE RESULTS:</p>
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={handleShareResults}
+                      onClick={() => navigate(`/user/polls/${poll.id}`)}
                       variant="noShadow"
-                      className="flex-1 cursor-pointer h-12 text-lg"
-                      size="sm"
                     >
-                      COPY RESULTS LINK
+                      Manage Poll
                     </Button>
-                  </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex gap-3 flex-wrap">
+                  <Button onClick={handleShareResults} variant="noShadow">
+                    Share Results
+                  </Button>
+                  <Button onClick={() => navigate("/")} variant="noShadow">
+                    Back to Home
+                  </Button>
                 </div>
               )}
-            </div>
-
-            {/* Poll Info */}
-            <div className="text-sm text-gray-600 pt-4 border-t border-gray-200">
-              <p>
-                Created on {new Date(poll.createdAt).toLocaleDateString()} •{" "}
-                {poll.multipleChoice ? "Multiple Choice" : "Single Choice"}
-                {poll.isAnonymous && (
-                  <span className="ml-2">• 🔒 Anonymous</span>
-                )}
-              </p>
             </div>
           </CardContent>
         </Card>
@@ -463,18 +764,21 @@ const CustomPollResult = () => {
       {/* Fullscreen Image Modal */}
       {fullscreenImage && (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
-          <div className="relative pointer-events-auto">
+          <div
+            className="fixed inset-0 bg-black bg-opacity-75 pointer-events-auto"
+            onClick={() => setFullscreenImage(null)}
+          ></div>
+          <div className="relative max-w-full max-h-full pointer-events-auto">
             <img
               src={fullscreenImage}
               alt="Fullscreen view"
-              className="max-h-[80vh] object-contain shadow-2xl border-2 border-white"
-              onClick={() => setFullscreenImage(null)}
+              className="max-w-full max-h-full object-contain"
             />
             <Button
-              onClick={() => setFullscreenImage(null)}
               variant="noShadow"
               size="icon"
-              className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-lg"
+              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white"
+              onClick={() => setFullscreenImage(null)}
             >
               <X className="h-4 w-4" />
             </Button>

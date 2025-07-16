@@ -401,7 +401,7 @@ function Datepoll() {
                     <FormItem className="flex flex-row items-center justify-between rounded-md border p-4">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">
-                          Yes/No/Maybe Voting
+                          Avaiability Check
                         </FormLabel>
                         <FormDescription>
                           Enable availability voting: voters must choose "Yes",

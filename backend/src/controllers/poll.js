@@ -81,7 +81,7 @@ export const getPoll = async (req, res, next) => {
         expirationDate: poll.expirationDate,
         expired: poll.expired,
         createdAt: poll.createdAt,
-        voteTokens: poll.voteTokens, // Tokens hinzugefügt
+        voteTokens: poll.voteTokens,
       },
     });
   } catch (error) {
@@ -188,7 +188,6 @@ export const getPollByToken = async (req, res) => {
   const { token } = req.params;
 
   try {
-    // Find poll that contains this token
     const poll = await PollModel.findOne({
       "voteTokens.token": token,
     });
@@ -197,7 +196,6 @@ export const getPollByToken = async (req, res) => {
       return res.status(404).json({ message: "Invalid vote token" });
     }
 
-    // Find the specific token entry
     const tokenEntry = poll.voteTokens.find((t) => t.token === token);
 
     if (tokenEntry.used) {
@@ -207,13 +205,11 @@ export const getPollByToken = async (req, res) => {
       });
     }
 
-    // Check if poll has expired (either by date OR manually set)
     const isExpiredByDate =
       poll.expirationDate && new Date() > new Date(poll.expirationDate);
     const isManuallyExpired = poll.expired === true;
 
     if (isExpiredByDate || isManuallyExpired) {
-      // If expired by date but not marked as expired, update it
       if (isExpiredByDate && !poll.expired) {
         poll.expired = true;
         await poll.save();
@@ -249,7 +245,6 @@ export const voteWithToken = async (req, res) => {
   const { voterName, optionIndexes } = req.body;
 
   try {
-    // Find poll that contains this token
     const poll = await PollModel.findOne({
       "voteTokens.token": token,
     });
@@ -258,7 +253,6 @@ export const voteWithToken = async (req, res) => {
       return res.status(404).json({ message: "Invalid vote token" });
     }
 
-    // Find the specific token entry
     const tokenEntry = poll.voteTokens.find((t) => t.token === token);
 
     if (!tokenEntry || tokenEntry.used) {
@@ -268,13 +262,11 @@ export const voteWithToken = async (req, res) => {
       });
     }
 
-    // Check if poll has expired (either by date OR manually set)
     const isExpiredByDate =
       poll.expirationDate && new Date() > new Date(poll.expirationDate);
     const isManuallyExpired = poll.expired === true;
 
     if (isExpiredByDate || isManuallyExpired) {
-      // If expired by date but not marked as expired, update it
       if (isExpiredByDate && !poll.expired) {
         poll.expired = true;
         await poll.save();
@@ -286,31 +278,26 @@ export const voteWithToken = async (req, res) => {
       });
     }
 
-    // Validate option indexes
     if (!Array.isArray(optionIndexes) || optionIndexes.length === 0) {
       return res.status(400).json({ message: "No options selected" });
     }
 
-    // Check if multiple choice is allowed
     if (!poll.multipleChoice && optionIndexes.length > 1) {
       return res
         .status(400)
         .json({ message: "Multiple choices not allowed for this poll" });
     }
 
-    // Validate all option indexes
     for (const index of optionIndexes) {
       if (index < 0 || index >= poll.options.length) {
         return res.status(400).json({ message: "Invalid option selected" });
       }
     }
 
-    // Add voter name to selected options
     for (const index of optionIndexes) {
       poll.options[index].voters.push(voterName);
     }
 
-    // Mark token as used
     tokenEntry.used = true;
     tokenEntry.usedAt = new Date();
     tokenEntry.voterName = voterName;
@@ -328,17 +315,12 @@ export const voteWithToken = async (req, res) => {
 };
 
 export const editCustomPoll = async (req, res) => {
-  const pollId = req.params.id;
   const { title, question, options, multipleChoice, expirationDate, expired } =
     req.body;
 
   try {
-    const poll = await PollModel.findById(pollId);
-    if (!poll) {
-      return res.status(404).json({ message: "Poll not found" });
-    }
+    const poll = req.poll;
 
-    // Update poll fields
     if (title !== undefined) poll.title = title;
     if (question !== undefined) poll.question = question;
     if (options !== undefined) poll.options = options;
@@ -370,15 +352,9 @@ export const editCustomPoll = async (req, res) => {
 };
 
 export const resetPoll = async (req, res) => {
-  const pollId = req.params.id;
-
   try {
-    const poll = await PollModel.findById(pollId);
-    if (!poll) {
-      return res.status(404).json({ message: "Poll not found" });
-    }
+    const poll = req.poll;
 
-    // Reset all votes in options
     poll.options.forEach((option) => {
       option.voters = [];
       option.yes = [];
@@ -386,7 +362,6 @@ export const resetPoll = async (req, res) => {
       option.maybe = [];
     });
 
-    // Reset all vote tokens
     poll.voteTokens.forEach((tokenEntry) => {
       tokenEntry.used = false;
       tokenEntry.usedAt = undefined;
@@ -417,18 +392,12 @@ export const resetPoll = async (req, res) => {
 };
 
 export const deleteCustomPoll = async (req, res) => {
-  const pollId = req.params.id;
-
   try {
-    const poll = await PollModel.findById(pollId);
-
-    if (!poll) {
-      return res.status(404).json({ message: "Poll not found" });
-    }
+    const poll = req.poll;
+    const pollId = poll._id;
 
     await PollModel.findByIdAndDelete(pollId);
 
-    // Entferne auch die Referenz aus dem User-Dokument
     await UserModel.updateMany(
       { "polls.poll": pollId },
       { $pull: { polls: { poll: pollId } } }

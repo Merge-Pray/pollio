@@ -22,6 +22,7 @@ interface Poll {
   expirationDate?: string;
   expired: boolean;
   multipleChoice: boolean;
+  isAnonymous: boolean;
 }
 
 interface PaginationInfo {
@@ -89,7 +90,7 @@ const Userpage = () => {
     if (id) {
       fetchUserPolls(1);
     }
-  }, [id]); // Remove currentUser dependency
+  }, [id]);
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= pagination.totalPages) {
@@ -282,6 +283,11 @@ const Userpage = () => {
                       {poll.multipleChoice && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                           Multiple Choice
+                        </span>
+                      )}
+                      {poll.isAnonymous && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          🔒 Anonymous
                         </span>
                       )}
                       {poll.expired && (

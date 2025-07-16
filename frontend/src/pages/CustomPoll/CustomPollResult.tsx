@@ -33,9 +33,11 @@ interface Poll {
   type: string;
   options: PollOption[];
   multipleChoice: boolean;
+  isAnonymous?: boolean;
   expirationDate?: string;
   expired: boolean;
   createdAt: string;
+  creatorId: string;
 }
 
 const CustomPollResult = () => {
@@ -112,6 +114,8 @@ const CustomPollResult = () => {
   };
 
   const renderTextPollResults = () => {
+    const isCreator = currentUser && poll && currentUser.id === poll.creatorId;
+
     return (
       <div className="space-y-4">
         {poll?.options
@@ -119,9 +123,13 @@ const CustomPollResult = () => {
           .map((option, index) => (
             <Card
               key={index}
-              className={`border-2 cursor-pointer transition-all hover:shadow-[4px_4px_0px_0px_var(--border)] hover:translate-x-[-2px] hover:translate-y-[-2px] "border-border"`}
+              className={`border-2 ${
+                isCreator && option.voters.length > 0 ? "cursor-pointer" : ""
+              } transition-all hover:shadow-[4px_4px_0px_0px_var(--border)] hover:translate-x-[-2px] hover:translate-y-[-2px] "border-border"`}
               onClick={() =>
-                setExpandedOption(expandedOption === index ? null : index)
+                isCreator && option.voters.length > 0
+                  ? setExpandedOption(expandedOption === index ? null : index)
+                  : undefined
               }
             >
               <CardContent className="pt-8 pb-8">
@@ -144,7 +152,7 @@ const CustomPollResult = () => {
                   className="mb-4 h-8 border-2 border-border"
                 />
 
-                {option.voters.length > 0 && (
+                {isCreator && option.voters.length > 0 && (
                   <div
                     className={`transition-all overflow-hidden ${
                       expandedOption === index
@@ -167,11 +175,11 @@ const CustomPollResult = () => {
                   </div>
                 )}
 
-                {option.voters.length > 0 && (
+                {isCreator && option.voters.length > 0 && (
                   <Button
                     variant="noShadow"
                     size="sm"
-                    className="mt-2 text-xs h-4 px-2 py-1 bg-white"
+                    className="mt-2 text-xs h-8 px-2 py-1 bg-white"
                     onClick={(e) => {
                       e.stopPropagation();
                       setExpandedOption(
@@ -184,6 +192,20 @@ const CustomPollResult = () => {
                       : "▼ Show voters"}
                   </Button>
                 )}
+
+                {poll?.isAnonymous && !isCreator && (
+                  <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+                    <span>🔒</span>
+                    <span>Anonymous poll - voter names are hidden</span>
+                  </div>
+                )}
+
+                {poll?.isAnonymous && isCreator && (
+                  <div className="mt-2 text-xs text-blue-600 flex items-center gap-1">
+                    <span>🔒</span>
+                    <span>Anonymous poll - only you can see voter names</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -192,6 +214,7 @@ const CustomPollResult = () => {
   };
 
   const renderImagePollResults = () => {
+    const isCreator = currentUser && poll && currentUser.id === poll.creatorId;
     const sortedOptions =
       poll?.options
         .map((option, originalIndex) => ({ ...option, originalIndex }))
@@ -242,43 +265,52 @@ const CustomPollResult = () => {
                     className="h-6 border-2 border-border"
                   />
 
-                  {option.voters.length > 0 && (
-                    <div>
-                      <Button
-                        variant="noShadow"
-                        size="sm"
-                        className="mb-3 text-xs"
-                        onClick={() =>
-                          setExpandedOption(
-                            expandedOption === option.originalIndex
-                              ? null
-                              : option.originalIndex
-                          )
-                        }
-                      >
-                        {expandedOption === option.originalIndex
-                          ? "▲ Hide voters"
-                          : "▼ Show voters"}
-                      </Button>
+                  {isCreator &&
+                    option.voters.length > 0 &&
+                    !poll?.isAnonymous && (
+                      <div>
+                        <Button
+                          variant="noShadow"
+                          size="sm"
+                          className="mb-3 text-xs"
+                          onClick={() =>
+                            setExpandedOption(
+                              expandedOption === option.originalIndex
+                                ? null
+                                : option.originalIndex
+                            )
+                          }
+                        >
+                          {expandedOption === option.originalIndex
+                            ? "▲ Hide voters"
+                            : "▼ Show voters"}
+                        </Button>
 
-                      <div
-                        className={`transition-all overflow-hidden ${
-                          expandedOption === option.originalIndex
-                            ? "max-h-32 opacity-100"
-                            : "max-h-0 opacity-0"
-                        }`}
-                      >
-                        <div className="flex flex-wrap gap-2">
-                          {option.voters.map((voterName, voterIndex) => (
-                            <span
-                              key={voterIndex}
-                              className="text-sm bg-main text-main-foreground px-3 py-1 rounded border border-border font-medium"
-                            >
-                              {voterName}
-                            </span>
-                          ))}
+                        <div
+                          className={`transition-all overflow-hidden ${
+                            expandedOption === option.originalIndex
+                              ? "max-h-32 opacity-100"
+                              : "max-h-0 opacity-0"
+                          }`}
+                        >
+                          <div className="flex flex-wrap gap-2">
+                            {option.voters.map((voterName, voterIndex) => (
+                              <span
+                                key={voterIndex}
+                                className="text-sm bg-main text-main-foreground px-3 py-1 rounded border border-border font-medium"
+                              >
+                                {voterName}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
+                    )}
+
+                  {poll?.isAnonymous && (
+                    <div className="text-xs text-gray-500 flex items-center gap-1">
+                      <span>🔒</span>
+                      <span>Anonymous poll - voter names are hidden</span>
                     </div>
                   )}
                 </div>
@@ -373,13 +405,15 @@ const CustomPollResult = () => {
                     >
                       Create New Poll
                     </Button>
-                    <Button
-                      onClick={() => navigate(`/user/polls/${id}`)}
-                      variant="noShadow"
-                      className="h-12 text-lg px-6 cursor-pointer"
-                    >
-                      Manage Poll
-                    </Button>
+                    {currentUser.id === poll.creatorId && (
+                      <Button
+                        onClick={() => navigate(`/user/polls/${id}`)}
+                        variant="noShadow"
+                        className="h-12 text-lg px-6 cursor-pointer"
+                      >
+                        Manage Poll
+                      </Button>
+                    )}
                   </div>
                   <div>
                     <p className="text-lg font-bold mb-3">SHARE RESULTS:</p>
@@ -417,6 +451,9 @@ const CustomPollResult = () => {
               <p>
                 Created on {new Date(poll.createdAt).toLocaleDateString()} •{" "}
                 {poll.multipleChoice ? "Multiple Choice" : "Single Choice"}
+                {poll.isAnonymous && (
+                  <span className="ml-2">• 🔒 Anonymous</span>
+                )}
               </p>
             </div>
           </CardContent>

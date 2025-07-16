@@ -36,6 +36,7 @@ interface Poll {
   type: string;
   options: PollOption[];
   multipleChoice: boolean;
+  isAnonymous: boolean;
   expirationDate?: string;
   expired: boolean;
   createdAt: string;
@@ -93,6 +94,7 @@ const ManagePoll = () => {
   const [editedOptions, setEditedOptions] = useState<PollOption[]>([]);
   const [editedMultipleChoice, setEditedMultipleChoice] =
     useState<boolean>(false);
+  const [editedIsAnonymous, setEditedIsAnonymous] = useState<boolean>(false);
   const [editedExpirationDate, setEditedExpirationDate] = useState<string>("");
   const [editedExpirationTime, setEditedExpirationTime] =
     useState<string>("23:59");
@@ -152,6 +154,7 @@ const ManagePoll = () => {
         setEditedQuestion(data.poll.question || "");
         setEditedOptions(data.poll.options || []);
         setEditedMultipleChoice(data.poll.multipleChoice || false);
+        setEditedIsAnonymous(data.poll.isAnonymous || false);
 
         // Handle expiration date and time
         if (data.poll.expirationDate) {
@@ -205,6 +208,7 @@ const ManagePoll = () => {
         setEditedQuestion(poll.question || "");
         setEditedOptions(poll.options || []);
         setEditedMultipleChoice(poll.multipleChoice || false);
+        setEditedIsAnonymous(poll.isAnonymous || false);
 
         // Reset expiration date and time
         if (poll.expirationDate) {
@@ -410,6 +414,7 @@ const ManagePoll = () => {
             poll.type === "text" ? option.text.trim() !== "" : option.imageUrl
           ),
           multipleChoice: editedMultipleChoice,
+          isAnonymous: editedIsAnonymous,
           expirationDate: expirationDate,
           expired: expired,
         }),
@@ -911,6 +916,32 @@ const ManagePoll = () => {
               ) : (
                 <p className="font-medium">
                   {poll.multipleChoice ? "Yes" : "No"}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label>Anonymous Voting:</Label>
+              {isEditing ? (
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={editedIsAnonymous}
+                    className="mx-1"
+                    onCheckedChange={(checked) =>
+                      setEditedIsAnonymous(checked as boolean)
+                    }
+                  />
+                  {editedIsAnonymous && <span className="text-xs">🔒</span>}
+                </div>
+              ) : (
+                <p className="font-medium flex items-center gap-1">
+                  {poll.isAnonymous ? (
+                    <>
+                      <span>🔒</span>
+                      <span>Yes</span>
+                    </>
+                  ) : (
+                    "No"
+                  )}
                 </p>
               )}
             </div>

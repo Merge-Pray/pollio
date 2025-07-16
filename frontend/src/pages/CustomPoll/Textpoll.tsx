@@ -53,6 +53,7 @@ function Textpoll() {
       .array(z.string().min(1, "Option cannot be empty"))
       .min(2, "At least 2 options required"),
     multipleChoice: z.boolean().default(false),
+    isAnonymous: z.boolean().default(false),
     hasEndDate: z.boolean().default(false),
     endDate: z.string().optional(),
     endTime: z.string().optional(),
@@ -66,6 +67,7 @@ function Textpoll() {
       numberOfOptions: "2",
       options: [],
       multipleChoice: false,
+      isAnonymous: false,
       hasEndDate: false,
       endDate: "",
       endTime: "23:59",
@@ -114,6 +116,7 @@ function Textpoll() {
           question: values.question,
           options: values.options.map((text) => ({ text })),
           multipleChoice: values.multipleChoice,
+          isAnonymous: values.isAnonymous,
           expirationDate: expirationDate,
           type: "text",
         }),
@@ -282,6 +285,30 @@ function Textpoll() {
                         </FormLabel>
                         <FormDescription>
                           Allow voters to select multiple options
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={Boolean(value)}
+                          onCheckedChange={onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="isAnonymous"
+                  render={({ field: { value, onChange } }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-md border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Anonymous Voting
+                        </FormLabel>
+                        <FormDescription>
+                          Hide voter names in public results. Only you will see
+                          who voted.
                         </FormDescription>
                       </div>
                       <FormControl>

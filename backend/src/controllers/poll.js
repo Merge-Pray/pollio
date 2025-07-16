@@ -4,8 +4,14 @@ import { v4 as uuidv4 } from "uuid";
 
 export const createTextPoll = async (req, res, next) => {
   try {
-    const { title, question, options, multipleChoice, expirationDate } =
-      req.body;
+    const {
+      title,
+      question,
+      options,
+      multipleChoice,
+      expirationDate,
+      isAnonymous,
+    } = req.body;
 
     const userId = req.user._id;
 
@@ -22,6 +28,7 @@ export const createTextPoll = async (req, res, next) => {
       type: "text",
       options: formattedOptions,
       multipleChoice: multipleChoice || false,
+      isAnonymous: isAnonymous || false,
       expirationDate: expirationDate ? new Date(expirationDate) : null,
       expired: false,
       creatorId: userId,
@@ -48,6 +55,7 @@ export const createTextPoll = async (req, res, next) => {
         type: newPoll.type,
         options: newPoll.options,
         multipleChoice: newPoll.multipleChoice,
+        isAnonymous: newPoll.isAnonymous,
         expirationDate: newPoll.expirationDate,
         createdAt: newPoll.createdAt,
         tokenCount: voteTokens.length,
@@ -78,9 +86,11 @@ export const getPoll = async (req, res, next) => {
         type: poll.type,
         options: poll.options,
         multipleChoice: poll.multipleChoice,
+        isAnonymous: poll.isAnonymous,
         expirationDate: poll.expirationDate,
         expired: poll.expired,
         createdAt: poll.createdAt,
+        creatorId: poll.creatorId,
         voteTokens: poll.voteTokens,
       },
     });
@@ -91,8 +101,14 @@ export const getPoll = async (req, res, next) => {
 
 export const createImagePoll = async (req, res, next) => {
   try {
-    const { title, question, options, multipleChoice, expirationDate } =
-      req.body;
+    const {
+      title,
+      question,
+      options,
+      multipleChoice,
+      expirationDate,
+      isAnonymous,
+    } = req.body;
 
     const userId = req.user._id;
 
@@ -122,6 +138,7 @@ export const createImagePoll = async (req, res, next) => {
       type: "image",
       options: formattedOptions,
       multipleChoice: multipleChoice || false,
+      isAnonymous: isAnonymous || false,
       expirationDate: expirationDate ? new Date(expirationDate) : null,
       expired: false,
       creatorId: userId,
@@ -148,6 +165,7 @@ export const createImagePoll = async (req, res, next) => {
         type: newPoll.type,
         options: newPoll.options,
         multipleChoice: newPoll.multipleChoice,
+        isAnonymous: newPoll.isAnonymous,
         expirationDate: newPoll.expirationDate,
         createdAt: newPoll.createdAt,
         tokenCount: voteTokens.length,
@@ -229,6 +247,7 @@ export const getPollByToken = async (req, res) => {
         type: poll.type,
         options: poll.options,
         multipleChoice: poll.multipleChoice,
+        isAnonymous: poll.isAnonymous,
         expirationDate: poll.expirationDate,
         expired: poll.expired,
         createdAt: poll.createdAt,
@@ -315,8 +334,15 @@ export const voteWithToken = async (req, res) => {
 };
 
 export const editCustomPoll = async (req, res) => {
-  const { title, question, options, multipleChoice, expirationDate, expired } =
-    req.body;
+  const {
+    title,
+    question,
+    options,
+    multipleChoice,
+    expirationDate,
+    expired,
+    isAnonymous,
+  } = req.body;
 
   try {
     const poll = req.poll;
@@ -325,6 +351,7 @@ export const editCustomPoll = async (req, res) => {
     if (question !== undefined) poll.question = question;
     if (options !== undefined) poll.options = options;
     if (multipleChoice !== undefined) poll.multipleChoice = multipleChoice;
+    if (isAnonymous !== undefined) poll.isAnonymous = isAnonymous;
     if (expirationDate !== undefined)
       poll.expirationDate = expirationDate ? new Date(expirationDate) : null;
     if (expired !== undefined) poll.expired = expired;
@@ -340,6 +367,7 @@ export const editCustomPoll = async (req, res) => {
         type: poll.type,
         options: poll.options,
         multipleChoice: poll.multipleChoice,
+        isAnonymous: poll.isAnonymous,
         expirationDate: poll.expirationDate,
         expired: poll.expired,
         createdAt: poll.createdAt,
@@ -379,6 +407,7 @@ export const resetPoll = async (req, res) => {
         type: poll.type,
         options: poll.options,
         multipleChoice: poll.multipleChoice,
+        isAnonymous: poll.isAnonymous,
         expirationDate: poll.expirationDate,
         expired: poll.expired,
         createdAt: poll.createdAt,

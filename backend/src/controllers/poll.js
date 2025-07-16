@@ -176,6 +176,86 @@ export const createImagePoll = async (req, res, next) => {
   }
 };
 
+export const createDatePoll = async (req, res, next) => {
+  try {
+    const {
+      title,
+      question,
+      options,
+      multipleChoice,
+      expirationDate,
+      isAnonymous,
+    } = req.body;
+
+    const userId = req.user._id;
+
+    if (!options || options.length < 2) {
+      const error = new Error("At least 2 date options are required");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    if (options.length > 10) {
+      const error = new Error("Maximum 10 date options allowed");
+      error.statusCode = 400;
+      return next(error);
+    }
+
+    const formattedOptions = options.map((option) => ({
+      dateTime: new Date(option.dateTime),
+      text: option.text || "",
+      yes: [],
+      no: [],
+      maybe: [],
+      voters: [],
+    }));
+
+    const voteTokens = [];
+
+    const newPoll = new PollModel({
+      title,
+      question,
+      type: "date",
+      options: formattedOptions,
+      multipleChoice: multipleChoice || false,
+      isAnonymous: isAnonymous || false,
+      expirationDate: expirationDate ? new Date(expirationDate) : null,
+      expired: false,
+      creatorId: userId,
+      voteTokens: voteTokens,
+    });
+
+    await newPoll.save();
+
+    await UserModel.findByIdAndUpdate(userId, {
+      $push: {
+        polls: {
+          poll: newPoll._id,
+          pollModel: "polls",
+        },
+      },
+    });
+
+    return res.status(201).json({
+      message: "Date poll created successfully",
+      poll: {
+        id: newPoll._id,
+        title: newPoll.title,
+        question: newPoll.question,
+        type: newPoll.type,
+        options: newPoll.options,
+        multipleChoice: newPoll.multipleChoice,
+        isAnonymous: newPoll.isAnonymous,
+        expirationDate: newPoll.expirationDate,
+        createdAt: newPoll.createdAt,
+        creatorId: newPoll.creatorId,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const generateVoteToken = async (req, res) => {
   const pollId = req.params.id;
 
@@ -261,7 +341,7 @@ export const getPollByToken = async (req, res) => {
 
 export const voteWithToken = async (req, res) => {
   const { token } = req.params;
-  const { voterName, optionIndexes } = req.body;
+  const { voterName, optionIndexes, dateAvailability } = req.body;
 
   try {
     const poll = await PollModel.findOne({
@@ -297,24 +377,61 @@ export const voteWithToken = async (req, res) => {
       });
     }
 
-    if (!Array.isArray(optionIndexes) || optionIndexes.length === 0) {
-      return res.status(400).json({ message: "No options selected" });
-    }
+    // Handle date polls with availability voting (yes/no/maybe)
+    if (poll.type === "date" && poll.multipleChoice && dateAvailability) {
+      // Validate that all options have availability responses
+      const requiredResponses = poll.options.length;
+      const providedResponses = Object.keys(dateAvailability).length;
 
-    if (!poll.multipleChoice && optionIndexes.length > 1) {
-      return res
-        .status(400)
-        .json({ message: "Multiple choices not allowed for this poll" });
-    }
-
-    for (const index of optionIndexes) {
-      if (index < 0 || index >= poll.options.length) {
-        return res.status(400).json({ message: "Invalid option selected" });
+      if (providedResponses !== requiredResponses) {
+        return res.status(400).json({
+          message: "Please provide availability for all date options",
+        });
       }
-    }
 
-    for (const index of optionIndexes) {
-      poll.options[index].voters.push(voterName);
+      // Validate availability values and update poll options
+      for (const [optionIndex, availability] of Object.entries(
+        dateAvailability
+      )) {
+        const index = parseInt(optionIndex);
+
+        if (index < 0 || index >= poll.options.length) {
+          return res.status(400).json({ message: "Invalid option index" });
+        }
+
+        if (!["yes", "no", "maybe"].includes(availability)) {
+          return res.status(400).json({
+            message: "Availability must be 'yes', 'no', or 'maybe'",
+          });
+        }
+
+        // Add voter to the appropriate availability array
+        poll.options[index][availability].push(voterName);
+
+        // Also add to general voters array for tracking
+        poll.options[index].voters.push(voterName);
+      }
+    } else {
+      // Handle regular voting (text, image, or single-choice date polls)
+      if (!Array.isArray(optionIndexes) || optionIndexes.length === 0) {
+        return res.status(400).json({ message: "No options selected" });
+      }
+
+      if (!poll.multipleChoice && optionIndexes.length > 1) {
+        return res
+          .status(400)
+          .json({ message: "Multiple choices not allowed for this poll" });
+      }
+
+      for (const index of optionIndexes) {
+        if (index < 0 || index >= poll.options.length) {
+          return res.status(400).json({ message: "Invalid option selected" });
+        }
+      }
+
+      for (const index of optionIndexes) {
+        poll.options[index].voters.push(voterName);
+      }
     }
 
     tokenEntry.used = true;
@@ -349,7 +466,81 @@ export const editCustomPoll = async (req, res) => {
 
     if (title !== undefined) poll.title = title;
     if (question !== undefined) poll.question = question;
-    if (options !== undefined) poll.options = options;
+
+    // Handle options based on poll type
+    if (options !== undefined) {
+      if (poll.type === "date") {
+        // Validate date options
+        if (options.length < 2) {
+          return res.status(400).json({
+            message: "At least 2 date options are required",
+          });
+        }
+
+        if (options.length > 10) {
+          return res.status(400).json({
+            message: "Maximum 10 date options allowed",
+          });
+        }
+
+        // Format date options properly
+        const formattedOptions = options.map((option) => ({
+          dateTime: option.dateTime ? new Date(option.dateTime) : null,
+          text: option.text || "",
+          yes: option.yes || [],
+          no: option.no || [],
+          maybe: option.maybe || [],
+          voters: option.voters || [],
+        }));
+
+        poll.options = formattedOptions;
+      } else if (poll.type === "text") {
+        // Validate text options
+        const validOptions = options.filter(
+          (option) => option.text && option.text.trim()
+        );
+
+        if (validOptions.length < 2) {
+          return res.status(400).json({
+            message: "At least 2 text options are required",
+          });
+        }
+
+        const formattedOptions = validOptions.map((option) => ({
+          text: option.text.trim(),
+          voters: option.voters || [],
+        }));
+
+        poll.options = formattedOptions;
+      } else if (poll.type === "image") {
+        // Validate image options
+        const validOptions = options.filter((option) => option.imageUrl);
+
+        if (validOptions.length < 2) {
+          return res.status(400).json({
+            message: "At least 2 image options are required",
+          });
+        }
+
+        if (validOptions.length > 10) {
+          return res.status(400).json({
+            message: "Maximum 10 image options allowed",
+          });
+        }
+
+        const formattedOptions = validOptions.map((option) => ({
+          imageUrl: option.imageUrl,
+          text: option.text || "",
+          voters: option.voters || [],
+        }));
+
+        poll.options = formattedOptions;
+      } else {
+        // Fallback for unknown types
+        poll.options = options;
+      }
+    }
+
     if (multipleChoice !== undefined) poll.multipleChoice = multipleChoice;
     if (isAnonymous !== undefined) poll.isAnonymous = isAnonymous;
     if (expirationDate !== undefined)

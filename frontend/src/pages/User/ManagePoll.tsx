@@ -20,12 +20,15 @@ import {
   CarouselPrevious,
 } from "../../components/ui/carousel";
 import { API_URL } from "@/lib/config";
-import { X, Upload, Image as ImageIcon } from "lucide-react";
-import type { CarouselApi } from "@/components/ui/carousel";
+import { X, Upload, Image as ImageIcon, Calendar, Clock } from "lucide-react";
 
 interface PollOption {
   text: string;
   imageUrl?: string;
+  dateTime?: string;
+  yes?: string[];
+  no?: string[];
+  maybe?: string[];
   voters: string[];
 }
 
@@ -117,12 +120,23 @@ const ManagePoll = () => {
   // Get today's date for minimum date validation
   const today = new Date().toISOString().split("T")[0];
 
-  // Helper function to check if poll is expired
-  const isPollExpired = (poll: Poll) => {
-    if (poll.expired) return true;
+  // Helper functions for poll status
+  const isPollActive = (poll: Poll) => {
+    if (poll.expired) return false;
     if (poll.expirationDate && new Date() > new Date(poll.expirationDate))
-      return true;
-    return false;
+      return false;
+    return true;
+  };
+
+  const isExpiredByDate = (poll: Poll) => {
+    return poll.expirationDate && new Date() > new Date(poll.expirationDate);
+  };
+
+  const isManuallyExpired = (poll: Poll) => {
+    return (
+      poll.expired &&
+      (!poll.expirationDate || new Date() <= new Date(poll.expirationDate))
+    );
   };
 
   useEffect(() => {
@@ -201,26 +215,32 @@ const ManagePoll = () => {
   }, [poll]);
 
   const handleToggleEdit = () => {
+    if (!poll) return;
+
+    // Check if poll is expired before allowing edit
+    if (!isPollActive(poll)) {
+      alert(
+        "Please reactivate the poll before editing. Use the 'Reactivate Poll' button first."
+      );
+      return;
+    }
+
     if (isEditing) {
       // Reset to original values when canceling
-      if (poll) {
-        setEditedTitle(poll.title || "");
-        setEditedQuestion(poll.question || "");
-        setEditedOptions(poll.options || []);
-        setEditedMultipleChoice(poll.multipleChoice || false);
-        setEditedIsAnonymous(poll.isAnonymous || false);
+      setEditedTitle(poll.title || "");
+      setEditedQuestion(poll.question || "");
+      setEditedOptions(poll.options || []);
+      setEditedMultipleChoice(poll.multipleChoice || false);
+      setEditedIsAnonymous(poll.isAnonymous || false);
 
-        // Reset expiration date and time
-        if (poll.expirationDate) {
-          const expirationDate = new Date(poll.expirationDate);
-          setEditedExpirationDate(expirationDate.toISOString().split("T")[0]);
-          setEditedExpirationTime(
-            expirationDate.toTimeString().substring(0, 5)
-          );
-        } else {
-          setEditedExpirationDate("");
-          setEditedExpirationTime("23:59");
-        }
+      // Reset expiration date and time
+      if (poll.expirationDate) {
+        const expirationDate = new Date(poll.expirationDate);
+        setEditedExpirationDate(expirationDate.toISOString().split("T")[0]);
+        setEditedExpirationTime(expirationDate.toTimeString().substring(0, 5));
+      } else {
+        setEditedExpirationDate("");
+        setEditedExpirationTime("23:59");
       }
     }
     setIsEditing(!isEditing);
@@ -335,6 +355,50 @@ const ManagePoll = () => {
     }
   };
 
+  const handleReactivatePoll = async () => {
+    if (!poll) return;
+
+    const confirmReactivate = window.confirm(
+      "Are you sure you want to reactivate this poll? This will allow voting again."
+    );
+    if (!confirmReactivate) return;
+
+    try {
+      let updateData = {
+        ...poll,
+        expired: false,
+      };
+
+      // If poll was expired by date (not manually), remove the expiration date
+      if (isExpiredByDate(poll)) {
+        updateData.expirationDate = null;
+      }
+
+      const response = await fetch(`${API_URL}/api/poll/edit/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to reactivate poll");
+      }
+
+      const updatedData = await response.json();
+      setPoll(updatedData.poll);
+      setError(null);
+    } catch (error) {
+      console.error("Error reactivating poll:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to reactivate poll"
+      );
+    }
+  };
+
   const handleResetPoll = async () => {
     if (!poll) return;
 
@@ -384,21 +448,26 @@ const ManagePoll = () => {
     try {
       // Handle expiration date and time combination
       let expirationDate = null;
-      let expired = false;
 
       if (editedExpirationDate) {
         const dateTime = `${editedExpirationDate}T${
           editedExpirationTime || "23:59"
         }:00`;
         expirationDate = new Date(dateTime).toISOString();
+      }
 
-        // If setting a new expiration date in the future, set expired to false
-        if (new Date(expirationDate) > new Date()) {
-          expired = false;
-        }
+      // Fix options filtering for different poll types
+      let filteredOptions;
+      if (poll.type === "text") {
+        filteredOptions = editedOptions.filter(
+          (option) => option.text.trim() !== ""
+        );
+      } else if (poll.type === "image") {
+        filteredOptions = editedOptions.filter((option) => option.imageUrl);
+      } else if (poll.type === "date") {
+        filteredOptions = editedOptions.filter((option) => option.dateTime);
       } else {
-        // If no expiration date is set, keep current expired status
-        expired = poll.expired;
+        filteredOptions = editedOptions;
       }
 
       const response = await fetch(`${API_URL}/api/poll/edit/${id}`, {
@@ -410,13 +479,11 @@ const ManagePoll = () => {
         body: JSON.stringify({
           title: editedTitle.trim(),
           question: editedQuestion.trim(),
-          options: editedOptions.filter((option) =>
-            poll.type === "text" ? option.text.trim() !== "" : option.imageUrl
-          ),
+          options: filteredOptions,
           multipleChoice: editedMultipleChoice,
           isAnonymous: editedIsAnonymous,
           expirationDate: expirationDate,
-          expired: expired,
+          expired: false, // Keep poll active when editing
         }),
       });
 
@@ -461,33 +528,6 @@ const ManagePoll = () => {
       console.error("Error deleting poll:", error);
       setError(
         error instanceof Error ? error.message : "Failed to delete poll"
-      );
-    }
-  };
-
-  const handleVote = async () => {
-    if (!poll) return;
-
-    try {
-      const response = await fetch(
-        `${API_URL}/api/poll/custom/${id}/generate-token`,
-        {
-          method: "POST",
-          credentials: "include",
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to generate token");
-      }
-
-      const data = await response.json();
-      alert(`Token generated successfully! Token: ${data.token}`);
-    } catch (error) {
-      console.error("Error generating token:", error);
-      setError(
-        error instanceof Error ? error.message : "Failed to generate token"
       );
     }
   };
@@ -805,6 +845,308 @@ const ManagePoll = () => {
     );
   };
 
+  const formatDateTime = (dateTimeString: string) => {
+    const date = new Date(dateTimeString);
+    return date.toLocaleString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatDateTimeForInput = (dateTime: string) => {
+    if (!dateTime) return "";
+    const date = new Date(dateTime);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const handleDateOptionChange = (
+    index: number,
+    field: "dateTime" | "text",
+    value: string
+  ) => {
+    const newOptions = [...editedOptions];
+    if (field === "dateTime") {
+      newOptions[index].dateTime = value;
+    } else {
+      newOptions[index].text = value;
+    }
+    setEditedOptions(newOptions);
+  };
+
+  const handleAddDateOption = () => {
+    if (editedOptions.length < 10) {
+      setEditedOptions([
+        ...editedOptions,
+        { text: "", dateTime: "", voters: [], yes: [], no: [], maybe: [] },
+      ]);
+    }
+  };
+
+  const handleRemoveDateOption = (index: number) => {
+    if (editedOptions.length > 2) {
+      setEditedOptions(editedOptions.filter((_, i) => i !== index));
+    }
+  };
+
+  const renderDateOptions = () => {
+    if (isEditing) {
+      return (
+        <div className="space-y-4">
+          <div className="text-sm bg-blue-50 text-blue-700 p-3 rounded-lg border border-blue-200">
+            <strong>ℹ️ Date Poll Settings:</strong>
+            <ul className="mt-2 space-y-1">
+              <li>
+                • <strong>Availability Check:</strong> Voters choose
+                Yes/No/Maybe for each date option
+              </li>
+              <li>
+                • <strong>Single Choice:</strong> Voters pick one preferred date
+              </li>
+            </ul>
+          </div>
+
+          {editedOptions.map((option, index) => (
+            <div key={index} className="border rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="font-medium">Date Option {index + 1}</Label>
+                {editedOptions.length > 2 && (
+                  <Button
+                    onClick={() => handleRemoveDateOption(index)}
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-sm">Date & Time</Label>
+                  <Input
+                    type="datetime-local"
+                    value={formatDateTimeForInput(option.dateTime || "")}
+                    onChange={(e) =>
+                      handleDateOptionChange(index, "dateTime", e.target.value)
+                    }
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm">Description (Optional)</Label>
+                  <Input
+                    value={option.text}
+                    onChange={(e) =>
+                      handleDateOptionChange(index, "text", e.target.value)
+                    }
+                    placeholder="e.g., Team meeting, Lunch break"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <Button
+            onClick={handleAddDateOption}
+            variant="outline"
+            size="sm"
+            disabled={editedOptions.length >= 10}
+            className="flex items-center gap-2"
+          >
+            <Calendar className="h-4 w-4" />
+            Add Date Option
+          </Button>
+
+          {editedOptions.length >= 10 && (
+            <p className="text-sm text-gray-500">
+              Maximum of 10 date options reached
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    // Display mode for date polls
+    return (
+      <div className="space-y-3">
+        {poll?.multipleChoice && (
+          <div className="text-sm bg-green-50 text-green-700 p-3 rounded-lg border border-green-200">
+            <strong>🗓️ Availability Check Poll:</strong> Participants vote
+            Yes/No/Maybe for each date option
+          </div>
+        )}
+
+        {poll?.options.map((option, index) => (
+          <Card key={index} className="p-4">
+            <div className="flex items-start gap-3">
+              <Calendar className="h-5 w-5 text-gray-500 mt-1" />
+              <div className="flex-1">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="font-medium">
+                      {option.text || `Date Option ${index + 1}`}
+                    </h4>
+                    {option.dateTime && (
+                      <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                        <Clock className="h-4 w-4" />
+                        {formatDateTime(option.dateTime)}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    {poll.multipleChoice ? (
+                      <div className="space-y-1 text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-600">✓ Yes:</span>
+                          <span className="font-medium">
+                            {option.yes?.length || 0}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-red-600">✗ No:</span>
+                          <span className="font-medium">
+                            {option.no?.length || 0}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-yellow-600">? Maybe:</span>
+                          <span className="font-medium">
+                            {option.maybe?.length || 0}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-600">
+                        Votes: {option.voters.length}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+
+  // Update the multiple choice label for date polls
+  const getMultipleChoiceLabel = () => {
+    if (poll?.type === "date") {
+      return poll.multipleChoice ? "Availability Check" : "Single Choice";
+    }
+    return poll?.multipleChoice ? "Yes" : "No";
+  };
+
+  const getMultipleChoiceDescription = () => {
+    if (poll?.type === "date") {
+      return poll.multipleChoice
+        ? "Voters choose Yes/No/Maybe for each date"
+        : "Voters select one preferred date";
+    }
+    return "";
+  };
+
+  const renderPollStatus = () => {
+    if (!poll) return null;
+
+    const isActive = isPollActive(poll);
+
+    if (isEditing) {
+      return (
+        <div className="space-y-3">
+          <Label>Set Expiration Date:</Label>
+          <div className="grid grid-cols-2 gap-2">
+            <Input
+              type="date"
+              value={editedExpirationDate}
+              onChange={(e) => setEditedExpirationDate(e.target.value)}
+              min={today}
+              placeholder="Select date"
+            />
+            <Input
+              type="time"
+              value={editedExpirationTime}
+              onChange={(e) => setEditedExpirationTime(e.target.value)}
+              placeholder="Select time"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="noShadow"
+              size="sm"
+              onClick={() => {
+                setEditedExpirationDate("");
+                setEditedExpirationTime("23:59");
+              }}
+              className="text-xs"
+            >
+              Clear Expiration
+            </Button>
+            <span className="text-xs text-gray-500">
+              Leave empty for no expiration
+            </span>
+          </div>
+          <div className="text-xs bg-blue-50 text-blue-700 p-2 rounded">
+            <strong>Current Status:</strong> Active
+            {poll.expirationDate && (
+              <span>
+                {" "}
+                until {formatExpirationDateTime(poll.expirationDate)}
+              </span>
+            )}
+          </div>
+          {editedExpirationDate && (
+            <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+              <strong>New expiration:</strong>{" "}
+              {formatExpirationDateTime(
+                `${editedExpirationDate}T${editedExpirationTime || "23:59"}:00`
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <Label>Status:</Label>
+        {isActive ? (
+          <div>
+            <p className="font-medium text-green-600">Active</p>
+            {poll.expirationDate && (
+              <p className="text-xs text-gray-500">
+                Expires: {formatExpirationDateTime(poll.expirationDate)}
+              </p>
+            )}
+          </div>
+        ) : (
+          <div>
+            <p className="font-medium text-red-600">Expired</p>
+            {poll.expirationDate && (
+              <p className="text-xs text-gray-500">
+                {isExpiredByDate(poll) ? "Expired by date" : "Would have ended"}{" "}
+                on {formatExpirationDateTime(poll.expirationDate)}
+              </p>
+            )}
+          </div>
+        )}
+      </>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -848,6 +1190,8 @@ const ManagePoll = () => {
     );
   }
 
+  const isActive = isPollActive(poll);
+
   return (
     <div className="max-w-4xl mx-auto mt-8 p-6">
       <Card>
@@ -866,7 +1210,7 @@ const ManagePoll = () => {
             ) : (
               <div className="flex items-center gap-3">
                 {poll.title}
-                {isPollExpired(poll) && (
+                {!isActive && (
                   <span className="text-sm bg-red-100 text-red-800 px-2 py-1 rounded">
                     EXPIRED
                   </span>
@@ -904,19 +1248,44 @@ const ManagePoll = () => {
               </p>
             </div>
             <div>
-              <Label>Multiple Choice:</Label>
+              <Label>
+                {poll?.type === "date"
+                  ? "Availability Check:"
+                  : "Multiple Choice:"}
+              </Label>
               {isEditing ? (
-                <Checkbox
-                  checked={editedMultipleChoice}
-                  className="mx-1"
-                  onCheckedChange={(checked) =>
-                    setEditedMultipleChoice(checked as boolean)
-                  }
-                />
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={editedMultipleChoice}
+                      className="mx-1"
+                      onCheckedChange={(checked) =>
+                        setEditedMultipleChoice(checked as boolean)
+                      }
+                    />
+                    <span className="text-sm">
+                      {poll?.type === "date"
+                        ? "Enable Yes/No/Maybe voting"
+                        : "Allow multiple selections"}
+                    </span>
+                  </div>
+                  {poll?.type === "date" && (
+                    <p className="text-xs text-gray-500">
+                      {editedMultipleChoice
+                        ? "Voters indicate availability for each date option"
+                        : "Voters select their single preferred date"}
+                    </p>
+                  )}
+                </div>
               ) : (
-                <p className="font-medium">
-                  {poll.multipleChoice ? "Yes" : "No"}
-                </p>
+                <div>
+                  <p className="font-medium">{getMultipleChoiceLabel()}</p>
+                  {poll?.type === "date" && (
+                    <p className="text-xs text-gray-500">
+                      {getMultipleChoiceDescription()}
+                    </p>
+                  )}
+                </div>
               )}
             </div>
             <div>
@@ -945,54 +1314,17 @@ const ManagePoll = () => {
                 </p>
               )}
             </div>
-            <div>
-              <Label>Status:</Label>
-              {isEditing ? (
-                <div className="space-y-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input
-                      type="date"
-                      value={editedExpirationDate}
-                      onChange={(e) => setEditedExpirationDate(e.target.value)}
-                      min={today}
-                      placeholder="Date"
-                    />
-                    <Input
-                      type="time"
-                      value={editedExpirationTime}
-                      onChange={(e) => setEditedExpirationTime(e.target.value)}
-                      placeholder="Time"
-                    />
-                  </div>
-                  {isPollExpired(poll) && (
-                    <div className="text-sm bg-orange-50 text-orange-700 p-2 rounded border border-orange-200">
-                      <strong>Poll is currently expired.</strong> Set a future
-                      expiration date to reactivate voting, or leave empty for
-                      no expiration.
-                    </div>
-                  )}
-                </div>
-              ) : isPollExpired(poll) ? (
-                <p className="font-medium text-red-600">Expired</p>
-              ) : poll.expirationDate ? (
-                <div>
-                  <p className="font-medium text-green-600">Active</p>
-                  <p className="text-xs text-gray-500">
-                    Expires: {formatExpirationDateTime(poll.expirationDate)}
-                  </p>
-                </div>
-              ) : (
-                <p className="font-medium text-green-600">
-                  Active (No expiration)
-                </p>
-              )}
-            </div>
+            <div>{renderPollStatus()}</div>
           </div>
 
           {/* Options */}
           <div className="space-y-4">
             <Label className="text-lg font-semibold">Options:</Label>
-            {poll.type === "text" ? renderTextOptions() : renderImageOptions()}
+            {poll.type === "text"
+              ? renderTextOptions()
+              : poll.type === "image"
+              ? renderImageOptions()
+              : renderDateOptions()}
           </div>
 
           {/* Share Links Section */}
@@ -1000,7 +1332,12 @@ const ManagePoll = () => {
 
           {/* Action Buttons */}
           <div className="flex gap-3 flex-wrap">
-            <Button onClick={handleToggleEdit} variant="neutral">
+            <Button
+              onClick={handleToggleEdit}
+              variant="neutral"
+              disabled={!isActive && !isEditing}
+              title={!isActive ? "Reactivate poll first to edit" : ""}
+            >
               {isEditing ? "Cancel" : "Edit"}
             </Button>
 
@@ -1010,16 +1347,19 @@ const ManagePoll = () => {
               </Button>
             )}
 
-            <Button
-              onClick={handleEndPoll}
-              variant="neutral"
-              disabled={isPollExpired(poll)}
-              className={
-                isPollExpired(poll) ? "opacity-50 cursor-not-allowed" : ""
-              }
-            >
-              End Poll
-            </Button>
+            {isActive ? (
+              <Button onClick={handleEndPoll} variant="neutral">
+                End Poll
+              </Button>
+            ) : (
+              <Button
+                onClick={handleReactivatePoll}
+                variant="neutral"
+                className="bg-green-100 hover:bg-green-200 text-green-800 border-green-300"
+              >
+                Reactivate Poll
+              </Button>
+            )}
 
             <Button
               onClick={handleResetPoll}

@@ -7,6 +7,7 @@ import db from "./db/db.js";
 import cookieParser from "cookie-parser";
 import { userRouter } from "./routes/user.js";
 import { pollRouter } from "./routes/poll.js";
+import uploadRouter from "./routes/upload.js";
 
 const app = express();
 
@@ -34,6 +35,7 @@ const PORT = process.env.PORT || 3001;
 
 app.use("/api/user", userRouter);
 app.use("/api/poll", pollRouter);
+app.use("/api/upload", uploadRouter);
 app.get("/", (req, res) => {
   res.send("hello");
 });

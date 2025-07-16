@@ -765,19 +765,19 @@ const CustomPollResult = () => {
       {fullscreenImage && (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
           <div
-            className="fixed inset-0 bg-black bg-opacity-75 pointer-events-auto"
+            className="fixed inset-0 pointer-events-auto"
             onClick={() => setFullscreenImage(null)}
           ></div>
-          <div className="relative max-w-full max-h-full pointer-events-auto">
+          <div className="relative pointer-events-auto bg-white border-2 border-border rounded-lg shadow-lg max-w-4xl max-h-[90vh] overflow-hidden">
             <img
               src={fullscreenImage}
               alt="Fullscreen view"
-              className="max-w-full max-h-full object-contain"
+              className="w-full h-full object-contain"
             />
             <Button
               variant="noShadow"
               size="icon"
-              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white"
+              className="absolute top-2 right-2 bg-white border-2 border-border hover:bg-gray-50"
               onClick={() => setFullscreenImage(null)}
             >
               <X className="h-4 w-4" />

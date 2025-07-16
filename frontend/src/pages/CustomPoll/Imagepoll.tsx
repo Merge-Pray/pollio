@@ -34,30 +34,57 @@ import useUserStore from "@/hooks/userstore";
 import { X, Upload, Image as ImageIcon } from "lucide-react";
 import type { CarouselApi } from "@/components/ui/carousel";
 
-const uploadToCloudinary = async (file: File): Promise<string> => {
+const uploadToBackend = async (file: File): Promise<string> => {
   const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", "ebqndymu");
-  formData.append("folder", `polls`);
+  formData.append("image", file);
 
   try {
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/dgzbudchq/image/upload`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    const response = await fetch(`${API_URL}/api/upload/image`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
 
     if (!response.ok) {
-      throw new Error("Failed to upload image");
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to upload image");
     }
 
     const data = await response.json();
-    return data.secure_url;
+    return data.url;
   } catch (error) {
-    console.error("Cloudinary upload error:", error);
-    throw new Error("Failed to upload image to Cloudinary");
+    console.error("Upload error:", error);
+    throw error;
+  }
+};
+
+const uploadMultipleToBackend = async (
+  files: File[]
+): Promise<UploadedImage[]> => {
+  const formData = new FormData();
+  files.forEach((file) => formData.append("images", file));
+
+  try {
+    const response = await fetch(`${API_URL}/api/upload/images`, {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to upload images");
+    }
+
+    const data = await response.json();
+    return data.images.map((img: any, index: number) => ({
+      url: img.url,
+      file: files[index],
+      text: "",
+    }));
+  } catch (error) {
+    console.error("Upload error:", error);
+    throw error;
   }
 };
 
@@ -165,20 +192,19 @@ function Imagepoll() {
     setError(null);
 
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
+      // Validate all files first
+      const fileArray = Array.from(files);
+      for (const file of fileArray) {
         if (!file.type.startsWith("image/")) {
           throw new Error(`${file.name} is not an image file`);
         }
-
         if (file.size > 5 * 1024 * 1024) {
           throw new Error(`${file.name} is too large. Maximum size is 5MB`);
         }
+      }
 
-        const url = await uploadToCloudinary(file);
-        return { url, file, text: "" };
-      });
-
-      const newImages = await Promise.all(uploadPromises);
+      // Use batch upload for better performance
+      const newImages = await uploadMultipleToBackend(fileArray);
       setUploadedImages((prev) => [...prev, ...newImages]);
     } catch (error) {
       console.error("Image upload error:", error);

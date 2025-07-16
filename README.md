@@ -1,7 +1,7 @@
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="/icon/p-logo-w2.svg" />
-    <source media="(prefers-color-scheme: light)" srcset="/icon/p-logo-s2.svg" />
+    <source media="(prefers-color-scheme: dark)" srcset="./frontend/public/p-logo-w2.svg" />
+    <source media="(prefers-color-scheme: light)" srcset="./frontend/public/p-logo-s2.svg" />
     <img src="/icon/p-logo-s2.svg" alt="Pollio Logo" width="200" />
   </picture>
 </div>

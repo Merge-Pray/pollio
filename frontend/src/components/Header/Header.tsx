@@ -1,5 +1,4 @@
 import { NavLink } from "react-router";
-
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
@@ -34,32 +33,41 @@ const Header = () => {
     }
   };
 
-  return (
-    <div className="flex flex-col justify-between items-center mt-6">
-      <div className="flex flex-row gap-4 justify-between items-center sm:py-2 sm:px-16 mb-4 w-full">
-        <div className="flex items-center">
-          <NavLink to="/">
-            <img
-              src={isDarkMode ? "/p-logo-w2.svg" : "/p-logo-s2.svg"}
-              alt="logo"
-              className="h-20"
-            />
-          </NavLink>
-        </div>
-        <div className="flex items-center justify-center gap-4">
-          <Switch
-            id="darkmode"
-            checked={isDarkMode}
-            onCheckedChange={toggleDarkMode}
+return (
+  <div className="w-full px-4 sm:px-16 mt-6">
+    <div className="flex flex-col sm:grid sm:grid-cols-[1fr_auto_1fr] items-center gap-4 w-full">
+      {/* Logo */}
+      <div className="flex justify-center sm:justify-start">
+        <NavLink to="/">
+          <img
+            src={isDarkMode ? "/p-logo-w2.svg" : "/p-logo-s2.svg"}
+            alt="logo"
+            className="h-20 max-w-[180px] w-full object-contain"
           />
-          <Label htmlFor="darkmode" className="text-xs">
-            {isDarkMode ? "light" : "dark"}
-          </Label>
+        </NavLink>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex justify-center min-w-0 overflow-hidden">
+        <div className="truncate">
           <Navigation />
         </div>
       </div>
+
+      {/* Toggle */}
+      <div className="flex justify-center sm:justify-end items-center gap-2">
+        <Switch
+          id="darkmode"
+          checked={isDarkMode}
+          onCheckedChange={toggleDarkMode}
+        />
+        <Label htmlFor="darkmode" className="text-xs">
+          {isDarkMode ? "light" : "dark"}
+        </Label>
+      </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default Header;

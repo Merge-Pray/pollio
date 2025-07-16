@@ -238,19 +238,29 @@ function Landingpage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-center w-full lg:w-2/3">
-        <NavLink to="/polloverview">
-          <Card className="min-w-[300px]">
-            <CardHeader>
-              <CardTitle className="text-2xl">Custom Poll</CardTitle>
-              <CardDescription className="text-lg">
-                Create a custom poll with more Options
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">Account required</CardContent>
-          </Card>
-        </NavLink>
-      </div>
+<div className="flex items-center justify-center w-full lg:w-2/3">
+  <NavLink to="/polloverview">
+    <Card className="min-w-[300px]">
+      <CardHeader className="flex flex-col items-center">
+        {/* 🖼️ Größeres SVG-Icon */}
+        <img
+          src="/icon/icon_black-all.svg"
+          alt="Custom Poll Icon"
+          className="w-60 h-30 mb-4 dark:invert"
+        />
+
+        <CardTitle className="text-2xl text-center">Custom Poll</CardTitle>
+        <CardDescription className="text-lg text-center">
+          Create a custom poll with more Options
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="space-y-6 text-center">
+        Account required
+      </CardContent>
+    </Card>
+  </NavLink>
+</div>
     </div>
   );
 }

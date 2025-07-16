@@ -1,7 +1,7 @@
 import { NavLink } from "react-router";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
+import { Sun, Moon } from "lucide-react";
 import Navigation from "../Navigation";
 
 const Header = () => {
@@ -33,41 +33,44 @@ const Header = () => {
     }
   };
 
-return (
-  <div className="w-full px-4 lg:px-16 mt-6">
-    {/* Wrapper: Flex-Layout */}
-    <div className="flex flex-col lg:flex-row items-center justify-between gap-4 w-full">
+  return (
+    <div className="w-full px-4 lg:px-16 mt-6">
+      {/* Wrapper: Flex-Layout */}
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 w-full">
+        {/* Logo (links) */}
+        <div className="flex justify-center lg:justify-start w-full lg:w-auto shrink-0">
+          <NavLink to="/">
+            <img
+              src={isDarkMode ? "/p-logo-w2.svg" : "/p-logo-s2.svg"}
+              alt="logo"
+              className="h-15 object-contain"
+            />
+          </NavLink>
+        </div>
 
-      {/* Logo (links) */}
-      <div className="flex justify-center lg:justify-start w-full lg:w-auto shrink-0">
-        <NavLink to="/">
-          <img
-            src={isDarkMode ? "/p-logo-w2.svg" : "/p-logo-s2.svg"}
-            alt="logo"
-            className="h-15 object-contain"
+        {/* Navigation (zentriert) */}
+        <div className="flex justify-center w-full lg:w-auto">
+          <Navigation />
+        </div>
+
+        {/* Darkmode (rechts) with Single Icon */}
+        <div className="flex justify-center lg:justify-end items-center gap-2 w-full lg:w-auto shrink-0">
+          {/* Zeigt nur das aktuelle Mode-Icon */}
+          {isDarkMode ? (
+            <Sun className="h-4 w-4" />
+          ) : (
+            <Moon className="h-4 w-4" />
+          )}
+
+          <Switch
+            id="darkmode"
+            checked={isDarkMode}
+            onCheckedChange={toggleDarkMode}
           />
-        </NavLink>
-      </div>
-
-      {/* Navigation (zentriert) */}
-      <div className="flex justify-center w-full lg:w-auto">
-        <Navigation />
-      </div>
-
-      {/* Darkmode (rechts) */}
-      <div className="flex justify-center lg:justify-end items-center gap-2 w-full lg:w-auto shrink-0">
-        <Switch
-          id="darkmode"
-          checked={isDarkMode}
-          onCheckedChange={toggleDarkMode}
-        />
-        <Label htmlFor="darkmode" className="text-xs">
-          {isDarkMode ? "light" : "dark"}
-        </Label>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default Header;

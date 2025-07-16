@@ -16,6 +16,10 @@ import TextpollResult from "../pages/CustomPoll/CustomPollResult";
 import TextpollVote from "../pages/CustomPoll/CustomPollVote";
 import Polloverview from "@/pages/Polloverview";
 import ProtectedRoute from "../components/ProtectedRoute";
+import DataPrivacy from "@/pages/Legal/DataPrivacy";
+import GeneralTermsAndConditions from "@/pages/Legal/GeneralTermsAndConditions";
+import LegalNotice from "@/pages/Legal/LegalNotice";
+import About from "@/pages/Legal/About";
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +33,10 @@ export const router = createBrowserRouter([
       { path: "quickpoll/result/:id", element: <QuickpollResult /> },
       { path: "quickpoll/vote/:id", element: <QuickpollVote /> },
       { path: "publicpoll", element: <Publicpoll /> },
+      { path: "legalnotice", element: <LegalNotice /> },
+      { path: "gtc", element: <GeneralTermsAndConditions /> },
+      { path: "dataprivacy", element: <DataPrivacy /> },
+      { path: "about", element: <About /> },
       {
         path: "user/:id",
         element: (

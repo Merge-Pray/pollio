@@ -35,11 +35,9 @@ const Header = () => {
 
 return (
   <div className="w-full px-4 lg:px-16 mt-6">
-    {/* Wrapper: Flex für Mobile, Grid für Desktop */}
-    <div className="flex flex-col items-center gap-4 w-full lg:grid lg:grid-cols-[auto_1fr_auto] lg:items-center">
+    <div className="flex flex-col items-center gap-4 w-full lg:relative lg:flex-row lg:justify-between lg:items-center">
 
-      {/* Logo (links) */}
-      <div className="flex justify-center lg:justify-start w-full shrink-0">
+      <div className="flex justify-center lg:justify-start w-full lg:w-auto shrink-0">
         <NavLink to="/">
           <img
             src={isDarkMode ? "/p-logo-w2.svg" : "/p-logo-s2.svg"}
@@ -49,28 +47,26 @@ return (
         </NavLink>
       </div>
 
-      {/* Navigation (zentriert) */}
-      <div className="flex justify-center w-full">
+      <div className="flex justify-center w-full lg:absolute lg:left-1/2 lg:top-1/2 lg:-translate-x-1/2 lg:-translate-y-1/2 lg:w-auto">
         <Navigation />
       </div>
-        {/* Darkmode (rechts) with Single Icon */}
-        <div className="flex justify-center lg:justify-end items-center gap-2 w-full lg:w-auto shrink-0">
-          {/* Zeigt nur das aktuelle Mode-Icon */}
-          {isDarkMode ? (
-            <Sun className="h-4 w-4" />
-          ) : (
-            <Moon className="h-4 w-4" />
-          )}
 
-          <Switch
-            id="darkmode"
-            checked={isDarkMode}
-            onCheckedChange={toggleDarkMode}
-          />
-        </div>
+      <div className="flex justify-center lg:justify-end items-center gap-2 w-full lg:w-auto shrink-0">
+        {isDarkMode ? (
+          <Sun className="h-4 w-4" />
+        ) : (
+          <Moon className="h-4 w-4" />
+        )}
+
+        <Switch
+          id="darkmode"
+          checked={isDarkMode}
+          onCheckedChange={toggleDarkMode}
+        />
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default Header;

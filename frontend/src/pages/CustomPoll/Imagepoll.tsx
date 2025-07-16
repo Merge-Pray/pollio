@@ -95,6 +95,7 @@ function Imagepoll() {
       .min(2, "At least 2 images required")
       .max(10, "Maximum 10 images allowed"),
     multipleChoice: z.boolean().default(false),
+    isAnonymous: z.boolean().default(false),
     hasEndDate: z.boolean().default(false),
     endDate: z.string().optional(),
     endTime: z.string().optional(),
@@ -107,6 +108,7 @@ function Imagepoll() {
       question: "",
       images: [],
       multipleChoice: false,
+      isAnonymous: false,
       hasEndDate: false,
       endDate: "",
       endTime: "23:59",
@@ -243,6 +245,7 @@ function Imagepoll() {
           question: values.question,
           options: options,
           multipleChoice: values.multipleChoice,
+          isAnonymous: values.isAnonymous,
           expirationDate: expirationDate,
           type: "image",
         }),
@@ -450,6 +453,30 @@ function Imagepoll() {
                         </FormLabel>
                         <FormDescription>
                           Allow voters to select multiple images
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={Boolean(value)}
+                          onCheckedChange={onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="isAnonymous"
+                  render={({ field: { value, onChange } }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-md border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Anonymous Voting
+                        </FormLabel>
+                        <FormDescription>
+                          Hide voter names in public results. Only you will see
+                          who voted.
                         </FormDescription>
                       </div>
                       <FormControl>

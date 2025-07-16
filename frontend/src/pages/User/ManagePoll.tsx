@@ -36,9 +36,11 @@ interface Poll {
   type: string;
   options: PollOption[];
   multipleChoice: boolean;
+  isAnonymous: boolean;
   expirationDate?: string;
   expired: boolean;
   createdAt: string;
+  voteTokens?: any[];
 }
 
 interface UploadedImage {
@@ -92,6 +94,7 @@ const ManagePoll = () => {
   const [editedOptions, setEditedOptions] = useState<PollOption[]>([]);
   const [editedMultipleChoice, setEditedMultipleChoice] =
     useState<boolean>(false);
+  const [editedIsAnonymous, setEditedIsAnonymous] = useState<boolean>(false);
   const [editedExpirationDate, setEditedExpirationDate] = useState<string>("");
   const [editedExpirationTime, setEditedExpirationTime] =
     useState<string>("23:59");
@@ -113,6 +116,14 @@ const ManagePoll = () => {
 
   // Get today's date for minimum date validation
   const today = new Date().toISOString().split("T")[0];
+
+  // Helper function to check if poll is expired
+  const isPollExpired = (poll: Poll) => {
+    if (poll.expired) return true;
+    if (poll.expirationDate && new Date() > new Date(poll.expirationDate))
+      return true;
+    return false;
+  };
 
   useEffect(() => {
     const fetchPoll = async () => {
@@ -143,6 +154,7 @@ const ManagePoll = () => {
         setEditedQuestion(data.poll.question || "");
         setEditedOptions(data.poll.options || []);
         setEditedMultipleChoice(data.poll.multipleChoice || false);
+        setEditedIsAnonymous(data.poll.isAnonymous || false);
 
         // Handle expiration date and time
         if (data.poll.expirationDate) {
@@ -196,6 +208,7 @@ const ManagePoll = () => {
         setEditedQuestion(poll.question || "");
         setEditedOptions(poll.options || []);
         setEditedMultipleChoice(poll.multipleChoice || false);
+        setEditedIsAnonymous(poll.isAnonymous || false);
 
         // Reset expiration date and time
         if (poll.expirationDate) {
@@ -287,6 +300,81 @@ const ManagePoll = () => {
     );
   };
 
+  const handleEndPoll = async () => {
+    if (!poll) return;
+
+    const confirmEnd = window.confirm(
+      "Are you sure you want to end this poll? This will immediately stop all voting."
+    );
+    if (!confirmEnd) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/poll/edit/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          ...poll,
+          expired: true,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to end poll");
+      }
+
+      const updatedData = await response.json();
+      setPoll(updatedData.poll);
+      setError(null);
+    } catch (error) {
+      console.error("Error ending poll:", error);
+      setError(error instanceof Error ? error.message : "Failed to end poll");
+    }
+  };
+
+  const handleResetPoll = async () => {
+    if (!poll) return;
+
+    const confirmReset = window.confirm(
+      "⚠️ WARNING: This will reset ALL votes and make all voting links usable again.\n\n" +
+        "Are you sure you want to reset this poll? This action cannot be undone.\n\n" +
+        "• All votes will be deleted\n" +
+        "• All voting tokens will be reactivated\n" +
+        "• Voters can vote again using their original links"
+    );
+    if (!confirmReset) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/poll/reset/${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to reset poll");
+      }
+
+      const updatedData = await response.json();
+      setPoll(updatedData.poll);
+      setShareTokens(updatedData.poll.voteTokens || []);
+      setError(null);
+
+      alert(
+        "Poll has been reset successfully! All votes cleared and voting links reactivated."
+      );
+    } catch (error) {
+      console.error("Error resetting poll:", error);
+      setError(error instanceof Error ? error.message : "Failed to reset poll");
+    }
+  };
+
   const handleSaveChanges = async () => {
     if (!poll || !editedTitle.trim() || !editedQuestion.trim()) {
       setError("Title and question are required");
@@ -296,11 +384,21 @@ const ManagePoll = () => {
     try {
       // Handle expiration date and time combination
       let expirationDate = null;
+      let expired = false;
+
       if (editedExpirationDate) {
         const dateTime = `${editedExpirationDate}T${
           editedExpirationTime || "23:59"
         }:00`;
         expirationDate = new Date(dateTime).toISOString();
+
+        // If setting a new expiration date in the future, set expired to false
+        if (new Date(expirationDate) > new Date()) {
+          expired = false;
+        }
+      } else {
+        // If no expiration date is set, keep current expired status
+        expired = poll.expired;
       }
 
       const response = await fetch(`${API_URL}/api/poll/edit/${id}`, {
@@ -316,7 +414,9 @@ const ManagePoll = () => {
             poll.type === "text" ? option.text.trim() !== "" : option.imageUrl
           ),
           multipleChoice: editedMultipleChoice,
+          isAnonymous: editedIsAnonymous,
           expirationDate: expirationDate,
+          expired: expired,
         }),
       });
 
@@ -490,7 +590,6 @@ const ManagePoll = () => {
           <div className="flex items-center gap-4">
             <Button
               type="button"
-              variant="outline"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading || editedOptions.length >= 10}
               className="flex items-center gap-2"
@@ -531,9 +630,9 @@ const ManagePoll = () => {
                             />
                             <Button
                               type="button"
-                              variant="destructive"
                               size="icon"
-                              className="absolute top-2 right-2 h-6 w-6"
+                              variant="noShadow"
+                              className="absolute top-2 right-2 h-6 w-6 cursor-pointer"
                               onClick={() => removeImageOption(index)}
                             >
                               <X className="h-3 w-3" />
@@ -628,6 +727,12 @@ const ManagePoll = () => {
   };
 
   const renderShareLinks = () => {
+    // Sort tokens by creation date (newest first)
+    const sortedTokens = [...shareTokens].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-4">
@@ -649,18 +754,15 @@ const ManagePoll = () => {
           </Button>
         </div>
 
-        {shareTokens.length > 0 && (
+        {sortedTokens.length > 0 && (
           <div className="space-y-3">
             <Label className="text-lg font-semibold">Share Links:</Label>
             <div className="max-h-60 overflow-y-auto space-y-2">
-              {shareTokens.map((tokenData, index) => (
-                <Card key={index} className="p-3">
+              {sortedTokens.map((tokenData, index) => (
+                <Card key={tokenData.token || index} className="p-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-medium">
-                          Token {index + 1}
-                        </span>
                         <span
                           className={`text-xs px-2 py-1 rounded ${
                             tokenData.used
@@ -752,24 +854,37 @@ const ManagePoll = () => {
         <CardHeader>
           <CardTitle className="text-2xl">
             {isEditing ? (
-              <Input
-                value={editedTitle}
-                onChange={(e) => setEditedTitle(e.target.value)}
-                placeholder="Poll Title"
-                className="text-xl"
-              />
+              <>
+                <Label>Poll Title:</Label>
+                <Input
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                  placeholder="Poll Title"
+                  className="text-xl"
+                />
+              </>
             ) : (
-              poll.title
+              <div className="flex items-center gap-3">
+                {poll.title}
+                {isPollExpired(poll) && (
+                  <span className="text-sm bg-red-100 text-red-800 px-2 py-1 rounded">
+                    EXPIRED
+                  </span>
+                )}
+              </div>
             )}
           </CardTitle>
           <CardDescription>
             {isEditing ? (
-              <Textarea
-                value={editedQuestion}
-                onChange={(e) => setEditedQuestion(e.target.value)}
-                placeholder="Poll Question"
-                className="mt-2"
-              />
+              <>
+                <Label>Poll Question:</Label>
+                <Textarea
+                  value={editedQuestion}
+                  onChange={(e) => setEditedQuestion(e.target.value)}
+                  placeholder="Poll Question"
+                  className="mt-2"
+                />
+              </>
             ) : (
               poll.question
             )}
@@ -805,28 +920,70 @@ const ManagePoll = () => {
               )}
             </div>
             <div>
-              <Label>Expiration:</Label>
+              <Label>Anonymous Voting:</Label>
               {isEditing ? (
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    type="date"
-                    value={editedExpirationDate}
-                    onChange={(e) => setEditedExpirationDate(e.target.value)}
-                    min={today}
-                    placeholder="Date"
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={editedIsAnonymous}
+                    className="mx-1"
+                    onCheckedChange={(checked) =>
+                      setEditedIsAnonymous(checked as boolean)
+                    }
                   />
-                  <Input
-                    type="time"
-                    value={editedExpirationTime}
-                    onChange={(e) => setEditedExpirationTime(e.target.value)}
-                    placeholder="Time"
-                  />
+                  {editedIsAnonymous && <span className="text-xs">🔒</span>}
                 </div>
               ) : (
-                <p className="font-medium">
-                  {poll.expirationDate
-                    ? formatExpirationDateTime(poll.expirationDate)
-                    : "No expiration"}
+                <p className="font-medium flex items-center gap-1">
+                  {poll.isAnonymous ? (
+                    <>
+                      <span>🔒</span>
+                      <span>Yes</span>
+                    </>
+                  ) : (
+                    "No"
+                  )}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label>Status:</Label>
+              {isEditing ? (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      type="date"
+                      value={editedExpirationDate}
+                      onChange={(e) => setEditedExpirationDate(e.target.value)}
+                      min={today}
+                      placeholder="Date"
+                    />
+                    <Input
+                      type="time"
+                      value={editedExpirationTime}
+                      onChange={(e) => setEditedExpirationTime(e.target.value)}
+                      placeholder="Time"
+                    />
+                  </div>
+                  {isPollExpired(poll) && (
+                    <div className="text-sm bg-orange-50 text-orange-700 p-2 rounded border border-orange-200">
+                      <strong>Poll is currently expired.</strong> Set a future
+                      expiration date to reactivate voting, or leave empty for
+                      no expiration.
+                    </div>
+                  )}
+                </div>
+              ) : isPollExpired(poll) ? (
+                <p className="font-medium text-red-600">Expired</p>
+              ) : poll.expirationDate ? (
+                <div>
+                  <p className="font-medium text-green-600">Active</p>
+                  <p className="text-xs text-gray-500">
+                    Expires: {formatExpirationDateTime(poll.expirationDate)}
+                  </p>
+                </div>
+              ) : (
+                <p className="font-medium text-green-600">
+                  Active (No expiration)
                 </p>
               )}
             </div>
@@ -846,13 +1003,41 @@ const ManagePoll = () => {
             <Button onClick={handleToggleEdit} variant="neutral">
               {isEditing ? "Cancel" : "Edit"}
             </Button>
+
             {isEditing && (
               <Button onClick={handleSaveChanges} variant="neutral">
                 Save Changes
               </Button>
             )}
+
+            <Button
+              onClick={handleEndPoll}
+              variant="neutral"
+              disabled={isPollExpired(poll)}
+              className={
+                isPollExpired(poll) ? "opacity-50 cursor-not-allowed" : ""
+              }
+            >
+              End Poll
+            </Button>
+
+            <Button
+              onClick={handleResetPoll}
+              variant="neutral"
+              className="bg-orange-100 hover:bg-orange-200 text-orange-800 border-orange-300"
+            >
+              Reset Poll
+            </Button>
+
             <Button onClick={handleDeletePoll} variant="neutral">
               Delete Poll
+            </Button>
+
+            <Button
+              onClick={() => navigate(`/custompoll/result/${id}`)}
+              variant="neutral"
+            >
+              View Results
             </Button>
           </div>
         </CardContent>

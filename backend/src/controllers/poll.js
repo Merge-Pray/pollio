@@ -4,8 +4,14 @@ import { v4 as uuidv4 } from "uuid";
 
 export const createTextPoll = async (req, res, next) => {
   try {
-    const { title, question, options, multipleChoice, expirationDate } =
-      req.body;
+    const {
+      title,
+      question,
+      options,
+      multipleChoice,
+      expirationDate,
+      isAnonymous,
+    } = req.body;
 
     const userId = req.user._id;
 
@@ -22,6 +28,7 @@ export const createTextPoll = async (req, res, next) => {
       type: "text",
       options: formattedOptions,
       multipleChoice: multipleChoice || false,
+      isAnonymous: isAnonymous || false,
       expirationDate: expirationDate ? new Date(expirationDate) : null,
       expired: false,
       creatorId: userId,
@@ -48,6 +55,7 @@ export const createTextPoll = async (req, res, next) => {
         type: newPoll.type,
         options: newPoll.options,
         multipleChoice: newPoll.multipleChoice,
+        isAnonymous: newPoll.isAnonymous,
         expirationDate: newPoll.expirationDate,
         createdAt: newPoll.createdAt,
         tokenCount: voteTokens.length,
@@ -78,10 +86,12 @@ export const getPoll = async (req, res, next) => {
         type: poll.type,
         options: poll.options,
         multipleChoice: poll.multipleChoice,
+        isAnonymous: poll.isAnonymous,
         expirationDate: poll.expirationDate,
         expired: poll.expired,
         createdAt: poll.createdAt,
-        voteTokens: poll.voteTokens, // Tokens hinzugefügt
+        creatorId: poll.creatorId,
+        voteTokens: poll.voteTokens,
       },
     });
   } catch (error) {
@@ -91,8 +101,14 @@ export const getPoll = async (req, res, next) => {
 
 export const createImagePoll = async (req, res, next) => {
   try {
-    const { title, question, options, multipleChoice, expirationDate } =
-      req.body;
+    const {
+      title,
+      question,
+      options,
+      multipleChoice,
+      expirationDate,
+      isAnonymous,
+    } = req.body;
 
     const userId = req.user._id;
 
@@ -122,6 +138,7 @@ export const createImagePoll = async (req, res, next) => {
       type: "image",
       options: formattedOptions,
       multipleChoice: multipleChoice || false,
+      isAnonymous: isAnonymous || false,
       expirationDate: expirationDate ? new Date(expirationDate) : null,
       expired: false,
       creatorId: userId,
@@ -148,6 +165,7 @@ export const createImagePoll = async (req, res, next) => {
         type: newPoll.type,
         options: newPoll.options,
         multipleChoice: newPoll.multipleChoice,
+        isAnonymous: newPoll.isAnonymous,
         expirationDate: newPoll.expirationDate,
         createdAt: newPoll.createdAt,
         tokenCount: voteTokens.length,
@@ -184,66 +202,159 @@ export const generateVoteToken = async (req, res) => {
   }
 };
 
-export const voteWithToken = async (req, res) => {
+export const getPollByToken = async (req, res) => {
   const { token } = req.params;
-  const { voterName, optionIndex } = req.body;
 
   try {
-    // Token in der Poll-Collection finden
     const poll = await PollModel.findOne({
       "voteTokens.token": token,
     });
 
     if (!poll) {
-      return res.status(404).json({ message: "Token not found" });
+      return res.status(404).json({ message: "Invalid vote token" });
     }
 
-    // Spezifischen Token aus dem Array finden
+    const tokenEntry = poll.voteTokens.find((t) => t.token === token);
+
+    if (tokenEntry.used) {
+      return res.status(400).json({
+        message: "Vote token already used",
+        pollId: poll._id,
+      });
+    }
+
+    const isExpiredByDate =
+      poll.expirationDate && new Date() > new Date(poll.expirationDate);
+    const isManuallyExpired = poll.expired === true;
+
+    if (isExpiredByDate || isManuallyExpired) {
+      if (isExpiredByDate && !poll.expired) {
+        poll.expired = true;
+        await poll.save();
+      }
+
+      return res.status(400).json({
+        message: "Poll has expired",
+        pollId: poll._id,
+      });
+    }
+
+    return res.status(200).json({
+      poll: {
+        id: poll._id,
+        title: poll.title,
+        question: poll.question,
+        type: poll.type,
+        options: poll.options,
+        multipleChoice: poll.multipleChoice,
+        isAnonymous: poll.isAnonymous,
+        expirationDate: poll.expirationDate,
+        expired: poll.expired,
+        createdAt: poll.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching poll by token:", error);
+    res.status(500).json({ message: "Failed to fetch poll" });
+  }
+};
+
+export const voteWithToken = async (req, res) => {
+  const { token } = req.params;
+  const { voterName, optionIndexes } = req.body;
+
+  try {
+    const poll = await PollModel.findOne({
+      "voteTokens.token": token,
+    });
+
+    if (!poll) {
+      return res.status(404).json({ message: "Invalid vote token" });
+    }
+
     const tokenEntry = poll.voteTokens.find((t) => t.token === token);
 
     if (!tokenEntry || tokenEntry.used) {
-      return res.status(400).json({ message: "Token invalid or already used" });
+      return res.status(400).json({
+        message: "Token invalid or already used",
+        pollId: poll._id,
+      });
     }
 
-    const index = parseInt(optionIndex);
-    if (!poll.options[index]) {
-      return res.status(400).json({ message: "Invalid option" });
+    const isExpiredByDate =
+      poll.expirationDate && new Date() > new Date(poll.expirationDate);
+    const isManuallyExpired = poll.expired === true;
+
+    if (isExpiredByDate || isManuallyExpired) {
+      if (isExpiredByDate && !poll.expired) {
+        poll.expired = true;
+        await poll.save();
+      }
+
+      return res.status(400).json({
+        message: "Poll has expired",
+        pollId: poll._id,
+      });
     }
 
-    // Stimme speichern
-    poll.options[index].voters.push(voterName);
+    if (!Array.isArray(optionIndexes) || optionIndexes.length === 0) {
+      return res.status(400).json({ message: "No options selected" });
+    }
 
-    // Token als benutzt markieren
+    if (!poll.multipleChoice && optionIndexes.length > 1) {
+      return res
+        .status(400)
+        .json({ message: "Multiple choices not allowed for this poll" });
+    }
+
+    for (const index of optionIndexes) {
+      if (index < 0 || index >= poll.options.length) {
+        return res.status(400).json({ message: "Invalid option selected" });
+      }
+    }
+
+    for (const index of optionIndexes) {
+      poll.options[index].voters.push(voterName);
+    }
+
     tokenEntry.used = true;
     tokenEntry.usedAt = new Date();
     tokenEntry.voterName = voterName;
 
     await poll.save();
 
-    res.status(200).json({ message: "Vote successful" });
+    res.status(200).json({
+      message: "Vote submitted successfully",
+      pollId: poll._id,
+    });
   } catch (error) {
-    console.error("Error voting:", error);
+    console.error("Error voting with token:", error);
     res.status(500).json({ message: "Voting failed" });
   }
 };
 
 export const editCustomPoll = async (req, res) => {
-  const pollId = req.params.id;
-  const { title, question, options, multipleChoice, expirationDate } = req.body;
+  const {
+    title,
+    question,
+    options,
+    multipleChoice,
+    expirationDate,
+    expired,
+    isAnonymous,
+  } = req.body;
 
   try {
-    const poll = await PollModel.findById(pollId);
-    if (!poll) {
-      return res.status(404).json({ message: "Poll not found" });
-    }
+    const poll = req.poll;
 
-    // Update poll fields
     if (title !== undefined) poll.title = title;
     if (question !== undefined) poll.question = question;
     if (options !== undefined) poll.options = options;
     if (multipleChoice !== undefined) poll.multipleChoice = multipleChoice;
+    if (isAnonymous !== undefined) poll.isAnonymous = isAnonymous;
     if (expirationDate !== undefined)
       poll.expirationDate = expirationDate ? new Date(expirationDate) : null;
+    if (expired !== undefined) poll.expired = expired;
 
     await poll.save();
 
@@ -256,6 +367,7 @@ export const editCustomPoll = async (req, res) => {
         type: poll.type,
         options: poll.options,
         multipleChoice: poll.multipleChoice,
+        isAnonymous: poll.isAnonymous,
         expirationDate: poll.expirationDate,
         expired: poll.expired,
         createdAt: poll.createdAt,
@@ -267,19 +379,54 @@ export const editCustomPoll = async (req, res) => {
   }
 };
 
-export const deleteCustomPoll = async (req, res) => {
-  const pollId = req.params.id;
-
+export const resetPoll = async (req, res) => {
   try {
-    const poll = await PollModel.findById(pollId);
+    const poll = req.poll;
 
-    if (!poll) {
-      return res.status(404).json({ message: "Poll not found" });
-    }
+    poll.options.forEach((option) => {
+      option.voters = [];
+      option.yes = [];
+      option.no = [];
+      option.maybe = [];
+    });
+
+    poll.voteTokens.forEach((tokenEntry) => {
+      tokenEntry.used = false;
+      tokenEntry.usedAt = undefined;
+      tokenEntry.voterName = undefined;
+    });
+
+    await poll.save();
+
+    res.status(200).json({
+      message: "Poll reset successfully",
+      poll: {
+        id: poll._id,
+        title: poll.title,
+        question: poll.question,
+        type: poll.type,
+        options: poll.options,
+        multipleChoice: poll.multipleChoice,
+        isAnonymous: poll.isAnonymous,
+        expirationDate: poll.expirationDate,
+        expired: poll.expired,
+        createdAt: poll.createdAt,
+        voteTokens: poll.voteTokens,
+      },
+    });
+  } catch (error) {
+    console.error("Error resetting poll:", error);
+    res.status(500).json({ message: "Failed to reset poll" });
+  }
+};
+
+export const deleteCustomPoll = async (req, res) => {
+  try {
+    const poll = req.poll;
+    const pollId = poll._id;
 
     await PollModel.findByIdAndDelete(pollId);
 
-    // Entferne auch die Referenz aus dem User-Dokument
     await UserModel.updateMany(
       { "polls.poll": pollId },
       { $pull: { polls: { poll: pollId } } }

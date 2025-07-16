@@ -5,7 +5,7 @@ import {
   logout,
   verifyLogin,
   getUserPolls,
-  googleLogin, // 👈 Import für Google Login
+  googleLogin,
 } from "../controllers/user.js";
 
 import { registerValidationRules, validate } from "../middleware/validation.js";
@@ -17,6 +17,6 @@ userRouter
   .post("/register", registerValidationRules(), validate, createUser)
   .post("/login", verifyLogin)
   .post("/logout", logout)
-  .post("/google-login", googleLogin) // 👈 Google Login hier ergänzen
+  .post("/google-login", googleLogin)
   .get("/:id", authorizeJwt, getUserData)
   .get("/:id/polls", authorizeJwt, getUserPolls);

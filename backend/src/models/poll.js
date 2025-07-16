@@ -27,6 +27,7 @@ const PollSchema = new Schema({
   expirationDate: { type: Date },
   expired: { type: Boolean, default: false },
   multipleChoice: { type: Boolean, default: false },
+  isAnonymous: { type: Boolean, default: false },
 
   creatorId: {
     type: Schema.Types.ObjectId,

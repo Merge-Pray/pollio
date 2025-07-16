@@ -238,19 +238,30 @@ function Landingpage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-center w-full lg:w-2/3">
-        <NavLink to="/polloverview">
-          <Card className="min-w-[300px]">
-            <CardHeader>
-              <CardTitle className="text-2xl">Custom Poll</CardTitle>
-              <CardDescription className="text-lg">
-                Create a custom poll with more Options
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">Account required</CardContent>
-          </Card>
-        </NavLink>
-      </div>
+<div className="flex items-center justify-center w-full lg:w-2/3">
+  <NavLink to="/polloverview">
+    <Card className="min-w-[400px] border-none !shadow-none bg-transparent ring-0 outline-none">
+      <CardHeader className="flex flex-col items-center">
+        {/* 🖼️ Größeres SVG-Icon */}
+        <img
+          src="/icon/icon_black-all.svg"
+          alt="Custom Poll Icon"
+          className="w-90 h-50 mb-4 dark:invert"
+        />
+
+        <CardTitle className="text-2xl text-center">Custom Poll</CardTitle>
+        <CardDescription className="text-lg text-center">
+          Design polls with text, images, or dates — and manage them in your account.
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="space-y-4 text-center">
+        <p className="text-sm text-muted-foreground">Account required</p>
+        <Button className="w-full">Start Now</Button>
+      </CardContent>
+    </Card>
+  </NavLink>
+</div>
     </div>
   );
 }

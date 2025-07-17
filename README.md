@@ -11,8 +11,6 @@
 **Pollio** is a lightweight and interactive survey platform that lets users quickly create, share, and participate in polls.  
 It is built with a modern tech stack and designed to offer a seamless user experience.
 
----
-
 ## 🚀 Features
 
 - 🗳️ Create polls with custom questions and answer types (text, image, or date).
@@ -21,22 +19,16 @@ It is built with a modern tech stack and designed to offer a seamless user exper
 - 🔐 User authentication for managing your own polls securely.
 - 💾 Backend integration ensures persistence and reliability.
 
----
-
 ## 🛠️ Tech Stack
 
 - **Frontend:** React.js, Vite
 - **Backend:** Node.js, Express.js, MongoDB
 - **Authentication:** JWT & OAuth (Google)
 
----
-
 ## 📚 Project Context
 
 This app was developed as part of the **Web Development curriculum at DCI**, with a focus on **Backend integration**.  
 It demonstrates how a full-stack application can be built with modern tools, integrating frontend, backend, database, and authentication.
-
----
 
 ## 📌 Planning & Collaboration
 
@@ -44,13 +36,9 @@ It demonstrates how a full-stack application can be built with modern tools, int
 - 📒 **Concept Notes (DE):** [Pollio Pad](https://pad.fnord.wtf/pollio_app)
 - 📋 **Project Management:** [Jira Board](https://pollio.atlassian.net/)
 
----
-
 ## 🔐 Optional / Future Tools
 
 - **reCAPTCHA:** [Google Cloud reCAPTCHA](https://cloud.google.com/security/products/recaptcha?hl=de)
-
----
 
 ## 👨‍💻 Contributors
 
